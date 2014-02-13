@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleFilterSample", "ImagingSDKSamples\SimpleFilterSample.csproj", "{246B19B9-11CA-40C8-99B5-D9CD6519A75E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|x86 = Debug|x86
+		Release|ARM = Release|ARM
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Debug|ARM.ActiveCfg = Debug|ARM
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Debug|ARM.Build.0 = Debug|ARM
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Debug|ARM.Deploy.0 = Debug|ARM
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Debug|x86.ActiveCfg = Debug|x86
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Debug|x86.Build.0 = Debug|x86
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Debug|x86.Deploy.0 = Debug|x86
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Release|ARM.ActiveCfg = Release|ARM
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Release|ARM.Build.0 = Release|ARM
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Release|ARM.Deploy.0 = Release|ARM
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Release|x86.ActiveCfg = Release|x86
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Release|x86.Build.0 = Release|x86
+		{246B19B9-11CA-40C8-99B5-D9CD6519A75E}.Release|x86.Deploy.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
