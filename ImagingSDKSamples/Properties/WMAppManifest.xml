@@ -1,14 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Deployment xmlns="http://schemas.microsoft.com/windowsphone/2012/deployment" AppPlatformVersion="8.0">
   <DefaultLanguage xmlns="" code="en-US" />
-  <App xmlns="" ProductID="{246b19b9-11ca-40c8-99b5-d9cd6519a75e}" Title="Simple Filter Sample" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal" Author="ImagingSDKSamples author" Description="Demonstrates in a easy way how to create filters and apply to an image" Publisher="ImagingSDKSamples" PublisherID="{1bb36b8a-b9ee-4171-9c68-d519075a337f}">
+  <App xmlns="" ProductID="{246b19b9-11ca-40c8-99b5-d9cd6519a75e}" Title="Simple Filter Sample" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal" Author="Nokia DX" Description="Demonstrates in a easy way how to create filters and apply to an image" Publisher="Nokia DX" PublisherID="{1bb36b8a-b9ee-4171-9c68-d519075a337f}">
     <IconPath IsRelative="true" IsResource="false">Assets\AppIcon.png</IconPath>
     <Capabilities>
       <Capability Name="ID_CAP_NETWORKING" />
       <Capability Name="ID_CAP_MEDIALIB_AUDIO" />
       <Capability Name="ID_CAP_MEDIALIB_PLAYBACK" />
-      <Capability Name="ID_CAP_SENSORS" />
-      <Capability Name="ID_CAP_WEBBROWSERCOMPONENT" />
       <Capability Name="ID_CAP_MEDIALIB_PHOTO" />
       <Capability Name="ID_CAP_ISV_CAMERA" />
     </Capabilities>
