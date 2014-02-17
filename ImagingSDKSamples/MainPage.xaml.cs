@@ -21,6 +21,7 @@ namespace ImagingSDKSamples
                 new SplitToneRange(175, 180, Windows.UI.Color.FromArgb(255, 255, 245, 238))
             };
 
+        #region Filters
         // List of filters and their constructors
         private readonly List<FilterListObject> _filterList = new List<FilterListObject>
         {
@@ -81,7 +82,8 @@ namespace ImagingSDKSamples
             new FilterListObject { Name="WhiteBalanceFilter", Constructor = new object[]{WhitePointCalculationMode.Maximum}},
             new FilterListObject { Name="WhiteboardEnhancementFilter", Constructor = new object[]{WhiteboardEnhancementMode.Hard}}
         };
-        
+        #endregion
+
         private bool _rendering; // Do not start rendering if we haven't finished previous rendering yet
 
         // Constructor
@@ -123,7 +125,7 @@ namespace ImagingSDKSamples
             using (var source = new StreamImageSource(App.ChosenPhoto))
             {
                 // Create a target where the filtered image will be rendered to
-                var target = new WriteableBitmap((int) ImageControl.ActualWidth, (int) ImageControl.ActualHeight);
+                var target = new WriteableBitmap((int)ImageControl.ActualWidth, (int)ImageControl.ActualHeight);
 
                 // Create a new renderer which outputs WriteableBitmaps
                 using (var renderer = new WriteableBitmapRenderer(source, target))
@@ -146,68 +148,83 @@ namespace ImagingSDKSamples
         /// <param name="e"></param>
         private async void FilterChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            // Get the name of the filter
-            var selectedFilter = FilterBox.Items[FilterBox.SelectedIndex] as FilterListObject;
-
-            if (selectedFilter == null || App.ChosenPhoto == null)
+            if (App.ChosenPhoto == null)
             {
                 return;
             }
 
-            if (string.Compare(selectedFilter.Name, "No filter", StringComparison.InvariantCultureIgnoreCase) == 0)
-            {
-                await RenderPlainPhoto();
-            }
-            else
-            {
-                // Format the fully qualified name of the class
-                var type = string.Format(
-                    "Nokia.Graphics.Imaging.{0}, Nokia.Graphics.Imaging, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime",
-                    selectedFilter.Name);
+            var filters = new List<IFilter>();
 
-                // Use reflection to create the filter class
-                var sampleEffect = Type.GetType(type);
-                if (sampleEffect != null)
+            // Get the name of the filter
+            foreach (FilterListObject selectedFilter in FilterBox.SelectedItems)
+            {
+                if (selectedFilter == null)
                 {
-                    var filter = (IFilter) Activator.CreateInstance(sampleEffect, selectedFilter.Constructor);
+                    continue;
+                }
 
-                    ApplyBasicFilter(filter);
+                if (string.Compare(selectedFilter.Name, "No filter", StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    continue;
+                }
+                else
+                {
+                    // Format the fully qualified name of the class
+                    var type = string.Format(
+                        "Nokia.Graphics.Imaging.{0}, Nokia.Graphics.Imaging, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime",
+                        selectedFilter.Name);
+
+                    // Use reflection to create the filter class
+                    var sampleEffect = Type.GetType(type);
+                    if (sampleEffect != null)
+                    {
+                        var filter = (IFilter)Activator.CreateInstance(sampleEffect, selectedFilter.Constructor);
+                        filters.Add(filter);
+                    }
                 }
             }
+            ApplyBasicFilter(filters);
+
         }
 
         /// <summary>
         /// Apply the chosen filter
         /// </summary>
         /// <param name="sampleEffect"></param>
-        private async void ApplyBasicFilter(IFilter sampleEffect)
+        private async void ApplyBasicFilter(List<IFilter> sampleEffect)
         {
             if (App.ChosenPhoto == null || _rendering)
             {
                 return;
             }
             _rendering = true;
-
-            // Create a source to read the image from PhotoResult stream
-            using (var source = new StreamImageSource(App.ChosenPhoto))
-            using (var filters = new FilterEffect(source))
+            try
             {
-                filters.Filters = new[] { sampleEffect };
-
-                // Create a target where the filtered image will be rendered to
-                var target = new WriteableBitmap((int) ImageControl.ActualWidth, (int) ImageControl.ActualHeight);
-
-                // Create a new renderer which outputs WriteableBitmaps
-                using (var renderer = new WriteableBitmapRenderer(filters, target))
+                // Create a source to read the image from PhotoResult stream
+                using (var source = new StreamImageSource(App.ChosenPhoto))
+                using (var filters = new FilterEffect(source))
                 {
-                    // Render the image with the filter
-                    await renderer.RenderAsync();
+                    filters.Filters = sampleEffect.ToArray();
 
-                    // Set the output image to Image control as a source
-                    ImageControl.Source = target;
+                    // Create a target where the filtered image will be rendered to
+                    var target = new WriteableBitmap((int)ImageControl.ActualWidth, (int)ImageControl.ActualHeight);
 
-                    App.ChosenPhoto.Position = 0;
+                    // Create a new renderer which outputs WriteableBitmaps
+                    using (var renderer = new WriteableBitmapRenderer(filters, target))
+                    {
+                        // Render the image with the filter
+                        await renderer.RenderAsync();
+
+                        // Set the output image to Image control as a source
+                        ImageControl.Source = target;
+
+                        App.ChosenPhoto.Position = 0;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
             }
             _rendering = false;
         }
