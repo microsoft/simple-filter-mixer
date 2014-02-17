@@ -27,7 +27,7 @@ namespace ImagingSDKSamples
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
 
         public FilterEnum GetEnumerator()
@@ -38,26 +38,26 @@ namespace ImagingSDKSamples
 
     public class FilterEnum : IEnumerator
     {
-        public FilterListObject[] _filters;
+        public FilterListObject[] Filters;
 
         // Enumerators are positioned before the first element 
         // until the first MoveNext() call. 
-        int position = -1;
+        int _position = -1;
 
         public FilterEnum(FilterListObject[] list)
         {
-            _filters = list;
+            Filters = list;
         }
 
         public bool MoveNext()
         {
-            position++;
-            return (position < _filters.Length);
+            _position++;
+            return (_position < Filters.Length);
         }
 
         public void Reset()
         {
-            position = -1;
+            _position = -1;
         }
 
         object IEnumerator.Current
@@ -74,7 +74,7 @@ namespace ImagingSDKSamples
             {
                 try
                 {
-                    return _filters[position];
+                    return Filters[_position];
                 }
                 catch (IndexOutOfRangeException)
                 {

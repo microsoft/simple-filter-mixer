@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Navigation;
@@ -10,11 +11,12 @@ namespace ImagingSDKSamples
 {
     public partial class MainPage
     {
+        private static readonly StorageFileImageSource MaskSource = InitializeFile().Result;
         // Used when needed a second image for the filter
         private static readonly ColorImageSource ColorSource = new ColorImageSource(new Windows.Foundation.Size(640, 480),
             Windows.UI.Color.FromArgb(255, 255, 0, 0));
 
-        private static List<SplitToneRange> splitList = new List<SplitToneRange> {
+        private static readonly List<SplitToneRange> SplitList = new List<SplitToneRange> {
                 new SplitToneRange(100, 150, Windows.UI.Color.FromArgb(255, 155, 145, 138)),
                 new SplitToneRange(160, 169, Windows.UI.Color.FromArgb(255, 155, 230, 142)),
                 new SplitToneRange(170, 172, Windows.UI.Color.FromArgb(255, 155, 130, 49)),
@@ -25,7 +27,6 @@ namespace ImagingSDKSamples
         // List of filters and their constructors
         private readonly List<FilterListObject> _filterList = new List<FilterListObject>
         {
-            new FilterListObject { Name="No filter"},
             new FilterListObject { Name="AntiqueFilter"},
             new FilterListObject { Name="AutoEnhanceFilter", Constructor = new object[]{true, true}},
             new FilterListObject { Name="AutoLevelsFilter"},
@@ -51,7 +52,7 @@ namespace ImagingSDKSamples
             new FilterListObject { Name="GrayscaleFilter"},
             new FilterListObject { Name="GrayscaleNegativeFilter"},
             new FilterListObject { Name="HueSaturationFilter", Constructor = new object[]{0.7, 0.7}},
-            new FilterListObject { Name="ImageFusionFilter"},
+            new FilterListObject { Name="ImageFusionFilter", Constructor = new object[]{ColorSource, MaskSource, false}},
             new FilterListObject { Name="LevelsFilter", Constructor = new object[]{0.6, 0.1, 0.4}},
             new FilterListObject { Name="LocalBoostAutomaticFilter"},
             new FilterListObject { Name="LocalBoostFilter", Constructor = new object[]{3, 0.5, 0.5, 0.4}},
@@ -72,7 +73,7 @@ namespace ImagingSDKSamples
             new FilterListObject { Name="SharpnessFilter", Constructor = new object[]{7}},
             new FilterListObject { Name="SketchFilter", Constructor = new object[]{SketchMode.Color}},
             new FilterListObject { Name="SolarizeFilter", Constructor = new object[]{0.5}},
-            new FilterListObject { Name="SplitToneFilter", Constructor = new object[]{splitList}},
+            new FilterListObject { Name="SplitToneFilter", Constructor = new object[]{SplitList}},
             new FilterListObject { Name="SpotlightFilter", Constructor = new object[]{new Windows.Foundation.Point(400, 300), 1200, 0.5}},
             new FilterListObject { Name="StampFilter", Constructor = new object[]{5, 0.7}},
             new FilterListObject { Name="TemperatureAndTintFilter", Constructor = new object[]{-0.5, 1}},
@@ -90,12 +91,43 @@ namespace ImagingSDKSamples
         public MainPage()
         {
             InitializeComponent();
+
+            FilterBox.SummaryForSelectedItemsDelegate = MultiSelection;
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        /// <summary>
+        /// Handle how to show the multiple selection in ListPicker
+        /// </summary>
+        /// <param name="selectedItems"></param>
+        /// <returns></returns>
+        private string MultiSelection(IList selectedItems)
+        {
+            if (selectedItems != null && selectedItems.Count > 0)
+            {
+                return selectedItems.Count == 1
+                    ? ((FilterListObject) selectedItems[0]).Name
+                    : "Multiple filters selected";
+            }
+            else
+            {
+                return "No filter selected";
+            }
+        }
+
+        /// <summary>
+        /// Load mask image
+        /// </summary>
+        /// <returns></returns>
+        private static async Task<StorageFileImageSource> InitializeFile()
+        {
+            const string imageFile = @"Assets\mask.jpg";
+            var file = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFileAsync(imageFile);
+            return new StorageFileImageSource(file);
+        }
+
+        protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-
             FilterBox.DataContext = _filterList;
         }
 
@@ -108,7 +140,7 @@ namespace ImagingSDKSamples
         {
             App.ChosenPhoto = e.ChosenPhoto;
 
-            if (FilterBox.SelectedIndex == 0)
+            if (FilterBox.SelectedItems == null || FilterBox.SelectedItems.Count == 0)
             {
                 await RenderPlainPhoto();
             }
@@ -136,7 +168,6 @@ namespace ImagingSDKSamples
                     // Set the output image to Image control as a source
                     ImageControl.Source = target;
                     App.ChosenPhoto.Position = 0;
-
                 }
             }
         }
@@ -163,24 +194,17 @@ namespace ImagingSDKSamples
                     continue;
                 }
 
-                if (string.Compare(selectedFilter.Name, "No filter", StringComparison.InvariantCultureIgnoreCase) == 0)
-                {
-                    continue;
-                }
-                else
-                {
-                    // Format the fully qualified name of the class
-                    var type = string.Format(
-                        "Nokia.Graphics.Imaging.{0}, Nokia.Graphics.Imaging, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime",
-                        selectedFilter.Name);
+                // Format the fully qualified name of the class
+                var type = string.Format(
+                    "Nokia.Graphics.Imaging.{0}, Nokia.Graphics.Imaging, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime",
+                    selectedFilter.Name);
 
-                    // Use reflection to create the filter class
-                    var sampleEffect = Type.GetType(type);
-                    if (sampleEffect != null)
-                    {
-                        var filter = (IFilter)Activator.CreateInstance(sampleEffect, selectedFilter.Constructor);
-                        filters.Add(filter);
-                    }
+                // Use reflection to create the filter class
+                var sampleEffect = Type.GetType(type);
+                if (sampleEffect != null)
+                {
+                    var filter = (IFilter)Activator.CreateInstance(sampleEffect, selectedFilter.Constructor);
+                    filters.Add(filter);
                 }
             }
             ApplyBasicFilter(filters);
