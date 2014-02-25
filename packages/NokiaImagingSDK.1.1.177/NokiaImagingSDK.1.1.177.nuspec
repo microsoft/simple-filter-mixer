@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
+  <metadata minClientVersion="2.5">
+    <id>NokiaImagingSDK</id>
+    <version>1.1.177</version>
+    <title>Nokia Imaging SDK</title>
+    <authors>Nokia</authors>
+    <owners>Nokia</owners>
+    <licenseUrl>http://developer.nokia.com/resources/library/Lumia/nokia-imaging-sdk/Nokia_Imaging_SDK_License_Agreement_v1.1.pdf</licenseUrl>
+    <projectUrl>http://developer.nokia.com/lumia/nokia-apis/imaging</projectUrl>
+    <iconUrl>http://developer.nokia.com/resources/library/Lumia/Nokia%20Imaging%20SDK/Images/imag_sdk_icon.png</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>The Nokia Imaging SDK makes some of the technologies that Nokia uses in its own imaging applications available to developers. It is a productive library for manipulating image data captured and stored by mobile devices in an efficient way. The features include decoding and encoding JPEG images, applying filters, cropping, rotating and resizing. The SDK provides more than 50 pre-made filters and effects that have been specifically developed for mobile imaging, with speed and memory performance as key drivers. The SDK is highly optimized to be super-fast by meticulous memory and code optimization. The patented JPEG technology, RAJPEG, contributes to making this possible, as it allows access to any image data without decoding the whole image. That means you can apply effects to high resolution images, without worrying about your memory budget.
+
+Check out our installation guide at : http://developer.nokia.com/Resources/Library/Lumia/#!nokia-imaging-sdk/adding-libraries-to-the-project.html</description>
+    <summary>Nokia Imaging SDK has more than 50 filters that have been specifically developed for mobile imaging, with speed and memory performance as key drivers.</summary>
+    <releaseNotes />
+    <copyright>Copyright (c) 2012-2014, Nokia. All rights reserved.</copyright>
+    <language />
+    <tags>Nokia Imaging NokiaImagingSDK WindowsPhone wp8</tags>
+    <references>
+      <group targetFramework="WindowsPhone8.0">
+        <reference file="Nokia.Graphics.Imaging.Managed.dll" />
+      </group>
+      <group targetFramework="Windows8.1">
+        <reference file="Nokia.Graphics.Imaging.Managed.dll" />
+      </group>
+    </references>
+  </metadata>
+</package>
