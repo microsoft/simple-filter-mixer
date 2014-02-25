@@ -73,7 +73,7 @@ License
 -------
 
 See the license text file delivered with this project:
-https://github.com/nokia-developer/lens-blur/blob/master/License.txt
+https://github.com/nokia-developer/simple-filter-sample/blob/master/License.txt
 
 
 Downloads
