@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>880967c9-f082-4eda-805c-5642a79bb667</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>simple_filter_mixer</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="$(MSBuildThisFileDirectory)App.xaml">
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="$(MSBuildThisFileDirectory)App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Common\ClassNameConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\NavigationHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\ObservableDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\RelayCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\SuspensionManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataModel\ConstructorObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataModel\FilterListObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FiltersPage.xaml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Imaging.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SettingsPage.xaml.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)Assets\AntiqueFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\AutoEnhanceFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\AutoLevelsFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\BlendFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\BlurFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\BrightnessFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\CartoonFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\ChromaKeyFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\ColorAdjustFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\ColorBoostFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\ColorizationFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\ColorSwapFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\ContrastFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\CropFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\CurvesFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\DespeckleFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\EmbossFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\ExposureFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\FlipFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\FogFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\FoundationFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\GrayscaleFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\GrayscaleNegativeFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\HdrEffect.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\HueSaturationFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\ImageFusionFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\InteractiveForegroundSegmenter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\LensBlurEffect.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\LevelsFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\LocalBoostAutomaticFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\LocalBoostFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\LomoFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\MagicpenFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\MilkyFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\MirrorFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\MonoColorFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\MoonlightFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\NegativeFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\NoiseFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\OilyFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\PaintFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\PosterizeFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\ReframingFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\RotationFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\SepiaFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\SharpnessFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\SketchFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\SolarizeFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\SplitToneFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\SpotlightFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\StampFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\TemperatureAndTintFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\VignettingFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\WarpFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\WatercolorFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\WhiteBalanceFilter.jpg" />
+    <Content Include="$(MSBuildThisFileDirectory)Assets\WhiteboardEnhancementFilter.jpg" />
+  </ItemGroup>
+</Project>

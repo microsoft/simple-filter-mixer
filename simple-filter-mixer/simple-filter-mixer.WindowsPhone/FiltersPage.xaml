@@ -1,0 +1,44 @@
+﻿<Page
+    x:Class="simple_filter_mixer.FiltersPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:simple_filter_mixer"
+    xmlns:common="using:simple_filter_mixer.Common"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <common:ClassNameConverter x:Key="ClassConverter"/>
+    </Page.Resources>
+    
+    <Grid>
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <EntranceThemeTransition/>
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title Panel -->
+        <StackPanel Grid.Row="0" Margin="19,0,0,0">
+            <TextBlock Text="NOKIA IMAGING SDK" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,12,0,0"/>
+            <TextBlock Text="select filters" Margin="0,-6.5,0,26.5" Style="{ThemeResource HeaderTextBlockStyle}"/>
+        </StackPanel>
+
+        <GridView Grid.Row="1" x:Name="FilterView" ItemsSource="{Binding}" SelectionMode="Multiple" Margin="40,10">
+            <GridView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <Image Source="{Binding Thumbnail}" Width="106" Height="75" Margin="10,10" DoubleTapped="Image_DoubleTapped" Holding="UIElement_OnHolding"/>
+                        <TextBlock Text="{Binding Converter={StaticResource ClassConverter}}" FontSize="12" Margin="10,10"/>
+                    </StackPanel>
+                </DataTemplate>
+            </GridView.ItemTemplate>
+        </GridView>
+    </Grid>
+</Page>
