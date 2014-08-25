@@ -15,7 +15,7 @@ Compatible with:
 Tested to work on:
 
  * Nokia Lumia 1520, HP EliteBook 8570w
- 
+ ![Alt text](/Simple Filter Mixer (1).png?raw=true "Screenshot")
 
 Instructions
 ------------
