@@ -17,6 +17,7 @@ Tested to work on:
  * Nokia Lumia 1520, HP EliteBook 8570w
 
 ![Alt text](/Simple Filter Mixer (2).png?raw=true "Screenshot 1")
+ 
 ![Alt text](/SFMSetParams.png?raw=true "Screenshot 2")
 Instructions
 ------------
