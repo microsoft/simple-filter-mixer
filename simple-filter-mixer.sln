@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30408.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "simple-filter-mixer", "simple-filter-mixer", "{FCD4B7BE-D5DF-461F-B480-C8F66E88BB8E}"
+	ProjectSection(SolutionItems) = preProject
+		Simple Filter Mixer (1).png = Simple Filter Mixer (1).png
+		Simple Filter Mixer (2).png = Simple Filter Mixer (2).png
+	EndProjectSection
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "simple-filter-mixer.Shared", "simple-filter-mixer\simple-filter-mixer.Shared\simple-filter-mixer.Shared.shproj", "{880967C9-F082-4EDA-805C-5642A79BB667}"
 EndProject
