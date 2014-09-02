@@ -29,11 +29,11 @@ namespace simple_filter_mixer
     public sealed partial class MainPage : Page
     {
         private Imaging imaging = new Imaging();
+        private bool firstTime = true;
 
         public MainPage()
         {
             this.InitializeComponent();
-
             this.NavigationCacheMode = NavigationCacheMode.Required;
         }
 
@@ -44,6 +44,11 @@ namespace simple_filter_mixer
         /// This parameter is typically used to configure the page.</param>
         protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
+            if (firstTime)
+            {
+                App.DisplayRatio = await ResolveDisplayRatioAsync();
+            }
+
             if (App.ChosenPhoto == null)
             {
                 try
@@ -62,9 +67,38 @@ namespace simple_filter_mixer
             var filters = new List<IFilter>();
 
             Imaging.CreateFilters(filters);
-            ImageControl.Source = await imaging.ApplyBasicFilter(filters);
+            imaging.IsRenderingChanged += OnIsRenderingChanged;
+
+            if (FiltersPage.FiltersChanged || firstTime)
+            {
+                ImageControl.Source = await imaging.ApplyBasicFilter(filters);
+                firstTime = false;
+            }
         }
 
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            imaging.IsRenderingChanged -= OnIsRenderingChanged;
+            base.OnNavigatedFrom(e);
+        }
+
+        private void OnIsRenderingChanged(object sender, bool e)
+        {
+            if (e)
+            {
+                MyProgressBar.Visibility = Visibility.Visible;
+                PhotoButton.IsEnabled = false;
+                FilterButton.IsEnabled = false;
+                AboutButton.IsEnabled = false;
+            }
+            else
+            {
+                MyProgressBar.Visibility = Visibility.Collapsed;
+                PhotoButton.IsEnabled = true;
+                FilterButton.IsEnabled = true;
+                AboutButton.IsEnabled = true;
+            }
+        }
         
         private void OnPhotoClicked(object sender, RoutedEventArgs e)
         {
@@ -110,6 +144,25 @@ namespace simple_filter_mixer
         private void OnAboutClicked(object sender, RoutedEventArgs e)
         {
             //Frame.Navigate(typeof(AboutPage));
+        }
+
+        private async System.Threading.Tasks.Task<double> ResolveDisplayRatioAsync()
+        {
+            double rawPixelsPerViewPixel = 0;
+            double screenResolutionX = 0;
+            double screenResolutionY = 0;
+
+            await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                {
+                    Windows.Graphics.Display.DisplayInformation displayInformation =
+                        Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
+                    rawPixelsPerViewPixel = displayInformation.RawPixelsPerViewPixel;
+                    screenResolutionX = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Bounds.Width * rawPixelsPerViewPixel;
+                    screenResolutionY = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Bounds.Height * rawPixelsPerViewPixel;
+                });
+
+            return screenResolutionY / screenResolutionX;
         }
     }
 }

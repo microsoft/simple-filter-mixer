@@ -1,10 +1,9 @@
-﻿//using Nokia.Graphics.Imaging;
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using simple_filter_mixer.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
@@ -15,21 +14,21 @@ using simple_filter_mixer.DataModel;
 namespace simple_filter_mixer
 {
     /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
+    /// Page for selecting wanted filters.
     /// </summary>
     public sealed partial class FiltersPage : Page
     {
         private NavigationHelper navigationHelper;
         private ObservableDictionary defaultViewModel = new ObservableDictionary();
+        private Dictionary<object, bool> changesList = new Dictionary<object, bool>();
+        private bool applyFilterSelection = false;
+        private bool appChangingFilterSelection = false;
+        private static bool settingsPossiblyChanged = false;
 
-        public FiltersPage()
+        public static bool FiltersChanged
         {
-            this.InitializeComponent();
-
-            this.navigationHelper = new NavigationHelper(this);
-            this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
-            this.navigationHelper.SaveState += this.NavigationHelper_SaveState;
-
+            get;
+            private set;
         }
 
         /// <summary>
@@ -47,6 +46,15 @@ namespace simple_filter_mixer
         public ObservableDictionary DefaultViewModel
         {
             get { return this.defaultViewModel; }
+        }
+
+        public FiltersPage()
+        {
+            this.InitializeComponent();
+
+            this.navigationHelper = new NavigationHelper(this);
+            this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
+            this.navigationHelper.SaveState += this.NavigationHelper_SaveState;
         }
 
         /// <summary>
@@ -107,10 +115,15 @@ namespace simple_filter_mixer
         {
             this.navigationHelper.OnNavigatedTo(e);
 
+            FiltersChanged = false;
             FilterView.DataContext = Imaging.FilterList;
 
-            if (App.ChosenFilters == null || FilterView.Items == null) 
+            if (App.ChosenFilters == null || FilterView.Items == null)
+            {
                 return;
+            }
+
+            appChangingFilterSelection = true;
 
             // Restore the previous selection of filters
             foreach (var listItem in from filter in App.ChosenFilters 
@@ -119,43 +132,134 @@ namespace simple_filter_mixer
             {
                 FilterView.SelectedItems.Add(listItem);
             }
+
+            appChangingFilterSelection = false;
+            changesList.Clear();
+
+            if (settingsPossiblyChanged)
+            {
+                ApplyButton.IsEnabled = true;
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            if (!applyFilterSelection && changesList.Count > 0)
+            {
+                appChangingFilterSelection = true;
+                bool wasSelected = false;
+
+                foreach (object item in changesList.Keys)
+                {
+                    if (changesList.TryGetValue(item, out wasSelected))
+                    {
+                        if (wasSelected && FilterView.SelectedItems.Contains(item))
+                        {
+                            FilterView.SelectedItems.Remove(item);
+                        }
+                        else if (!wasSelected)
+                        {
+                            FilterView.SelectedItems.Add(item);
+                        }
+                    }
+                }
+
+                changesList.Clear();
+                appChangingFilterSelection = false;
+            }
+
             this.navigationHelper.OnNavigatedFrom(e);
         }
 
         #endregion
-        
-        private void Image_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-        {
-            var img = sender as Image;
 
-            SetFilterParameters(img);
+        private void OnGridViewSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (appChangingFilterSelection)
+            {
+                return;
+            }
+
+            if (e.AddedItems.Count > 0)
+            {
+                foreach (object item in e.AddedItems)
+                {
+                    AddChangeToDictionary(item, true);
+                }
+            }
+            else if (e.RemovedItems.Count > 0)
+            {
+                foreach (object item in e.RemovedItems)
+                {
+                    AddChangeToDictionary(item, false);
+                }
+            }
         }
 
-        private void UIElement_OnHolding(object sender, HoldingRoutedEventArgs e)
+        private void OnFilterItemDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {
-            var img = sender as Image;
+            FilterGridItemControl itemControl = sender as FilterGridItemControl;
+            SetFilterParameters(itemControl);
+        }
 
-            SetFilterParameters(img);
+        private void OnFilterItemLongPressed(object sender, HoldingRoutedEventArgs e)
+        {
+            FilterGridItemControl itemControl = sender as FilterGridItemControl;
+            SetFilterParameters(itemControl);
+        }
+
+        private void OnApplyButtonClicked(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            settingsPossiblyChanged = false;
+            applyFilterSelection = true;
+            FiltersChanged = true;
+            NavigationHelper.GoBack();
         }
 
         /// <summary>
         /// Launch Settings page and adjust the filter parameters
         /// </summary>
-        /// <param name="img"></param>
-        private void SetFilterParameters(Image img)
+        /// <param name="image"></param>
+        private void SetFilterParameters(FilterGridItemControl itemControl)
         {
-            if (img != null)
+            if (itemControl != null)
             {
-                var obj = img.DataContext as FilterListObject;
-                if (obj != null)
+                var filterListObject = itemControl.FilterPreviewImage.DataContext as FilterListObject;
+
+                if (filterListObject != null)
                 {
-                    Debug.WriteLine(obj.Name + " holded");
-                    this.Frame.Navigate(typeof (SettingsPage), obj);
+                    Debug.WriteLine("FiltersPage: SetFilterParameters(): " + filterListObject.Name);
+                    this.Frame.Navigate(typeof (SettingsPage), filterListObject);
+                    settingsPossiblyChanged = true;
+                    ApplyButton.IsEnabled = true;
                 }
+            }
+        }
+
+        private void AddChangeToDictionary(object item, bool wasSelected)
+        {
+            bool wasPreviouslySelected = false;
+
+            if (changesList.TryGetValue(item, out wasPreviouslySelected))
+            {
+                if ((wasPreviouslySelected && !wasSelected)
+                    || (!wasPreviouslySelected && wasSelected))
+                {
+                    changesList.Remove(item);
+                }
+            }
+            else
+            {
+                changesList.Add(item, wasSelected);
+            }
+
+            if (!ApplyButton.IsEnabled && changesList.Count > 0)
+            {
+                ApplyButton.IsEnabled = true;
+            }
+            else if (ApplyButton.IsEnabled && !settingsPossiblyChanged && changesList.Count == 0)
+            {
+                ApplyButton.IsEnabled = false;
             }
         }
     }

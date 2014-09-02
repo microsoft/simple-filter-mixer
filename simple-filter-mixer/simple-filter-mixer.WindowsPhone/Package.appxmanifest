@@ -4,7 +4,7 @@
   <mp:PhoneIdentity PhoneProductId="669b50f5-be2c-4e35-8c10-7035c26176dc" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>simple-filter-mixer.WindowsPhone</DisplayName>
-    <PublisherDisplayName>Jani</PublisherDisplayName>
+    <PublisherDisplayName>Microsoft Mobile</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   <Prerequisites>

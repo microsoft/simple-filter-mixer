@@ -20,10 +20,9 @@ namespace simple_filter_mixer
     public sealed partial class SettingsPage : Page
     {
         private NavigationHelper navigationHelper;
-
         private FilterListObject filterInEdit;
+        private Dictionary<string, object> filterParameters = new Dictionary<string, object>();
 
-        private Dictionary<string, object> values = new Dictionary<string, object>();
         public SettingsPage()
         {
             this.InitializeComponent();
@@ -87,6 +86,12 @@ namespace simple_filter_mixer
             }
         }
 
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            GetValues();
+        }
+
         /// <summary>
         /// Check all properties available and create UX controls to adjust them
         /// </summary>
@@ -143,20 +148,19 @@ namespace simple_filter_mixer
                             FontSize = 24,
                             Margin = new Thickness(10, 10, 0, 0)
                         };
+
                         OptionPanel.Children.Add(item1);
-                        values.Add(property.Name, item1);
+                        filterParameters.Add(property.Name, item1);
                         break;
                     case "int32":
                         var item2i = CreateTextBox(property, "TextBox");
                         OptionPanel.Children.Add(item2i);
-
-                        values.Add(property.Name, item2i);
+                        filterParameters.Add(property.Name, item2i);
                         break;
                     case "double":
                         var item2d = CreateTextBox(property, "TextBox", true);
                         OptionPanel.Children.Add(item2d);
-
-                        values.Add(property.Name, item2d);
+                        filterParameters.Add(property.Name, item2d);
                         break;
                     case "blurregionshape":
                         var item3 = new CheckBox
@@ -166,26 +170,27 @@ namespace simple_filter_mixer
                             FontSize = 24,
                             Margin = new Thickness(10, 10, 0, 0)
                         };
+
                         OptionPanel.Children.Add(item3);
-                        values.Add(property.Name, item3);
+                        filterParameters.Add(property.Name, item3);
                         break;
                     case "rect":
                         var item4 = CreateTextBoxGroup(property, "X, Y, Width, Height", new List<string> { "X", "Y", "W", "H" }, 1);
-                        values.Add(property.Name, item4);
+                        filterParameters.Add(property.Name, item4);
                         break;
                     case "color":
-                        var item5 = CreateTextBoxGroup(property, "A, R, G, B (decimal)", new List<string> { "A", "R", "G", "B" },
-                            2);
-                        values.Add(property.Name, item5);
+                        var item5 = CreateTextBoxGroup(property, "A, R, G, B (decimal)", new List<string> { "A", "R", "G", "B" }, 2);
+                        filterParameters.Add(property.Name, item5);
                         break;
                     case "point":
                         var item6 = CreateTextBoxGroup(property, "X, Y", new List<string> { "X", "Y" }, 3);
-                        values.Add(property.Name, item6);
+                        filterParameters.Add(property.Name, item6);
                         break;
                     default:
                         break;
                 }
             }
+
             OptionPanel.InvalidateArrange();
         }
 
@@ -249,13 +254,6 @@ namespace simple_filter_mixer
             return box;
         }
 
-        protected override void OnNavigatedFrom(NavigationEventArgs e)
-        {
-            base.OnNavigatedFrom(e);
-
-            GetValues();
-        }
-
         /// <summary>
         /// Get chosen values from the dynamically created controls
         /// </summary>
@@ -263,14 +261,15 @@ namespace simple_filter_mixer
         {
             try
             {
-                foreach (var fil in App.ChosenFilters)
+                foreach (var filterListObject in App.ChosenFilters)
                 {
-                    if (fil.Name == filterInEdit.Name)
+                    if (filterListObject.Name == filterInEdit.Name)
                     {
-                        fil.Attribs = new Dictionary<string, object>();
-                        foreach (var val in values)
+                        filterListObject.Parameters = new Dictionary<string, object>();
+
+                        foreach (var filterParameter in filterParameters)
                         {
-                            GetValue(val, fil);
+                            GetValue(filterParameter, filterListObject);
                         }
                     }
                 }
@@ -282,41 +281,41 @@ namespace simple_filter_mixer
 
         }
 
-        private static void GetValue(KeyValuePair<string, object> val, FilterListObject fil)
+        private static void GetValue(KeyValuePair<string, object> filterParameter, FilterListObject filterListObject)
         {
-            Type original = val.Value.GetType();
+            Type original = filterParameter.Value.GetType();
             switch (original.Name.ToLower())
             {
                 case "textbox":
-                    fil.Attribs.Add(val.Key, ((TextBox) val.Value).Text);
+                    filterListObject.Parameters.Add(filterParameter.Key, ((TextBox) filterParameter.Value).Text);
                     break;
                 case "checkbox":
-                    fil.Attribs.Add(val.Key, ((CheckBox) val.Value).IsChecked);
+                    filterListObject.Parameters.Add(filterParameter.Key, ((CheckBox) filterParameter.Value).IsChecked);
                     break;
                 case "list`1":
-                    int listType = Convert.ToInt32(((List<object>) val.Value)[0]);
+                    int listType = Convert.ToInt32(((List<object>) filterParameter.Value)[0]);
 
                     // Rect list
                     if (listType == 1)
                     {
-                        int x = Convert.ToInt32(((TextBox) ((List<object>) val.Value)[1]).Text);
-                        int y = Convert.ToInt32(((TextBox) ((List<object>) val.Value)[2]).Text);
-                        int w = Convert.ToInt32(((TextBox) ((List<object>) val.Value)[3]).Text);
-                        int h = Convert.ToInt32(((TextBox) ((List<object>) val.Value)[4]).Text);
+                        int x = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[1]).Text);
+                        int y = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[2]).Text);
+                        int w = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[3]).Text);
+                        int h = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[4]).Text);
                         var rect = new Rect(x, y, w, h);
-                        fil.Attribs.Add(val.Key, rect);
+                        filterListObject.Parameters.Add(filterParameter.Key, rect);
                     }
 
                     // Color list
                     if (listType == 2)
                     {
-                        byte a = Convert.ToByte((((TextBox) ((List<object>) val.Value)[1]).Text));
-                        byte r = Convert.ToByte((((TextBox) ((List<object>) val.Value)[2]).Text));
-                        byte g = Convert.ToByte((((TextBox) ((List<object>) val.Value)[3]).Text));
-                        byte b = Convert.ToByte((((TextBox) ((List<object>) val.Value)[4]).Text));
+                        byte a = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[1]).Text));
+                        byte r = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[2]).Text));
+                        byte g = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[3]).Text));
+                        byte b = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[4]).Text));
                         var col = Color.FromArgb(a, r, g, b);
 
-                        fil.Attribs.Add(val.Key, col);
+                        filterListObject.Parameters.Add(filterParameter.Key, col);
                     }
                     break;
                 default:

@@ -31,13 +31,10 @@
             <RowDefinition Height="140"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <GridView Grid.Row="1" x:Name="FilterView" ItemsSource="{Binding}" SelectionMode="Multiple" Margin="40,10" >
+        <GridView Grid.Row="1" x:Name="FilterView" ItemsSource="{Binding}" SelectionMode="Multiple" Margin="40,10" SelectionChanged="OnGridViewSelectionChanged">
             <GridView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel>
-                        <Image Source="{Binding Thumbnail}" Width="150" Height="100" Margin="10,10" DoubleTapped="Image_DoubleTapped" />
-                        <TextBlock Text="{Binding Converter={StaticResource ClassConverter}}" FontSize="12" Margin="10,10"/>
-                    </StackPanel>
+                    <local:FilterGridItemControl DoubleTapped="OnFilterItemDoubleTapped" Holding="OnFilterItemLongPressed" />
                 </DataTemplate>
             </GridView.ItemTemplate>
         </GridView>
@@ -58,4 +55,10 @@
                         IsHitTestVisible="false" TextWrapping="NoWrap" VerticalAlignment="Bottom" Margin="0,0,30,40"/>
         </Grid>
     </Grid>
+
+    <Page.BottomAppBar>
+        <CommandBar>
+            <AppBarButton x:Uid="Apply" x:Name="ApplyButton" Icon="Accept" Label="" IsEnabled="False" Click="OnApplyButtonClicked" />
+        </CommandBar>
+    </Page.BottomAppBar>
 </Page>

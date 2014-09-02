@@ -9,6 +9,8 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <StackPanel x:Name="OptionPanel" Margin="24,10"/>
+        <ScrollViewer>
+            <StackPanel x:Name="OptionPanel" Margin="24,10" />
+        </ScrollViewer>
     </Grid>
 </Page>

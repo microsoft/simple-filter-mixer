@@ -22,9 +22,10 @@
         </Grid.RowDefinitions>
 
         <!-- Title Panel -->
-        <StackPanel Grid.Row="0" Margin="19,0,0,0">
-            <TextBlock Text="NOKIA IMAGING SDK" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,12,0,0"/>
-            <TextBlock Text="filter mixer" Margin="0,-6.5,0,26.5" Style="{ThemeResource HeaderTextBlockStyle}" CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,0">
+            <TextBlock Text="NOKIA IMAGING SDK" Style="{ThemeResource TitleTextBlockStyle}" Margin="19,12,0,0"/>
+            <TextBlock Text="filter mixer" Margin="19,-6.5,0,26.5" Style="{ThemeResource HeaderTextBlockStyle}" CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}"/>
+            <ProgressBar x:Name="MyProgressBar" Height="10" IsIndeterminate="True" Visibility="Collapsed" />
         </StackPanel>
         <Image Grid.Row="1" x:Name="ImageControl" HorizontalAlignment="Left" Height="525" Stretch="Uniform" Margin="10,10,10,0" Source="Assets/default.jpg" />
     </Grid>

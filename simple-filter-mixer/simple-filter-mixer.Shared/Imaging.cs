@@ -52,8 +52,9 @@ namespace simple_filter_mixer
     }
     public class Imaging
     {
-        Helper help = new Helper();
-
+        public EventHandler<bool> IsRenderingChanged;
+        private Helper help = new Helper();
+        
         private bool _rendering; // Do not start rendering if we haven't finished previous rendering yet
 
         public static readonly List<FilterListObject> FilterList = new List<FilterListObject>
@@ -162,9 +163,9 @@ namespace simple_filter_mixer
                     try
                     {
                         // Apply changed parameter values if any
-                        if (selectedFilter.Attribs != null)
+                        if (selectedFilter.Parameters != null)
                         {
-                            foreach (var property in selectedFilter.Attribs)
+                            foreach (var property in selectedFilter.Parameters)
                             {
                                 info = sampleEffect.GetRuntimeProperty(property.Key);
                                 if (info != null && info.Name == property.Key)
@@ -230,10 +231,16 @@ namespace simple_filter_mixer
                 return null;
             }
 
+            _rendering = true;
+
+            if (IsRenderingChanged != null)
+            {
+                IsRenderingChanged(this, true);
+            }
+
             var props = await App.ChosenPhoto.Properties.GetImagePropertiesAsync();
             var target = new WriteableBitmap((int)props.Width, (int)props.Height);
 
-            _rendering = true;
             try
             {
                 // Create a source to read the image from PhotoResult stream
@@ -254,7 +261,14 @@ namespace simple_filter_mixer
             {
                 System.Diagnostics.Debug.WriteLine(ex.Message);
             }
+
             _rendering = false;
+
+            if (IsRenderingChanged != null)
+            {
+                IsRenderingChanged(this, false);
+            }
+
             return target;
         }
 
@@ -283,6 +297,5 @@ namespace simple_filter_mixer
                 }
             }
         }
-
     }
 }

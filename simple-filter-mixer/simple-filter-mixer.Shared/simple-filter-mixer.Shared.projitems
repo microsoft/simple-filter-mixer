@@ -22,6 +22,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Common\SuspensionManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataModel\ConstructorObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataModel\FilterListObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FilterGridItemControl.xaml.cs">
+      <DependentUpon>FilterGridItemControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)FiltersPage.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Imaging.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SettingsPage.xaml.cs" />
@@ -84,5 +87,11 @@
     <Content Include="$(MSBuildThisFileDirectory)Assets\WatercolorFilter.jpg" />
     <Content Include="$(MSBuildThisFileDirectory)Assets\WhiteBalanceFilter.jpg" />
     <Content Include="$(MSBuildThisFileDirectory)Assets\WhiteboardEnhancementFilter.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)FilterGridItemControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 </Project>

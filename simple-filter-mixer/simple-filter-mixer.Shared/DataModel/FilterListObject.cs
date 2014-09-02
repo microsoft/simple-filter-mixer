@@ -8,18 +8,16 @@ namespace simple_filter_mixer.DataModel
     public class FilterListObject
     {
         public string Name { get; set; }
-
         public BitmapImage Thumbnail { get; set; }
         public object[] Constructor { get; set; }
 
         /// <summary>
-        /// Filter attributes set in the SettingsPage
+        /// Filter parameters set in the SettingsPage
         /// </summary>
-        public Dictionary<string, object> Attribs { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
 
         public FilterListObject()
         {
-
         }
 
         public FilterListObject(string filterName)

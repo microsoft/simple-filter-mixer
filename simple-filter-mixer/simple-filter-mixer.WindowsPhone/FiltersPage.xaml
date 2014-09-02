@@ -7,10 +7,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
-    <Page.Resources>
-        <common:ClassNameConverter x:Key="ClassConverter"/>
-    </Page.Resources>
     
     <Grid>
         <Grid.ChildrenTransitions>
@@ -30,15 +26,26 @@
             <TextBlock Text="select filters" Margin="0,-6.5,0,26.5" Style="{ThemeResource HeaderTextBlockStyle}"/>
         </StackPanel>
 
-        <GridView Grid.Row="1" x:Name="FilterView" ItemsSource="{Binding}" SelectionMode="Multiple" Margin="40,10">
+        <GridView
+            x:Name="FilterView"
+            Grid.Row="1"
+            Margin="0,0,0,0"
+            Padding="0,0,0,0"
+            BorderThickness="0"
+            ItemsSource="{Binding}"
+            SelectionMode="Multiple"
+            SelectionChanged="OnGridViewSelectionChanged">
             <GridView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel>
-                        <Image Source="{Binding Thumbnail}" Width="106" Height="75" Margin="10,10" DoubleTapped="Image_DoubleTapped" Holding="UIElement_OnHolding"/>
-                        <TextBlock Text="{Binding Converter={StaticResource ClassConverter}}" FontSize="12" Margin="10,10"/>
-                    </StackPanel>
+                    <local:FilterGridItemControl DoubleTapped="OnFilterItemDoubleTapped" Holding="OnFilterItemLongPressed" />
                 </DataTemplate>
             </GridView.ItemTemplate>
         </GridView>
     </Grid>
+    
+    <Page.BottomAppBar>
+        <CommandBar>
+            <AppBarButton x:Uid="Apply" x:Name="ApplyButton" Icon="Accept" Label="" IsEnabled="False" Click="OnApplyButtonClicked" />
+        </CommandBar>
+    </Page.BottomAppBar>
 </Page>
