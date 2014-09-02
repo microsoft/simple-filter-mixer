@@ -77,11 +77,11 @@ namespace simple_filter_mixer
 
             if (App.DisplayRatio > 1.7)
             {
-                GridItemWidth = 245;
+                GridItemWidth = 240;
             }
             else
             {
-                GridItemWidth = 190;
+                GridItemWidth = 185;
             }
         }
     }

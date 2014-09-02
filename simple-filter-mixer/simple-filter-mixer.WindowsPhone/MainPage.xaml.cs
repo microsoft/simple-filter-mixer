@@ -28,8 +28,8 @@ namespace simple_filter_mixer
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private Imaging imaging = new Imaging();
-        private bool firstTime = true;
+        private Imaging _imaging = new Imaging();
+        private bool _firstTime = true;
 
         public MainPage()
         {
@@ -44,7 +44,7 @@ namespace simple_filter_mixer
         /// This parameter is typically used to configure the page.</param>
         protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
-            if (firstTime)
+            if (_firstTime)
             {
                 App.DisplayRatio = await ResolveDisplayRatioAsync();
             }
@@ -67,18 +67,18 @@ namespace simple_filter_mixer
             var filters = new List<IFilter>();
 
             Imaging.CreateFilters(filters);
-            imaging.IsRenderingChanged += OnIsRenderingChanged;
+            _imaging.IsRenderingChanged += OnIsRenderingChanged;
 
-            if (FiltersPage.FiltersChanged || firstTime)
+            if (FiltersPage.FiltersChanged || _firstTime)
             {
-                ImageControl.Source = await imaging.ApplyBasicFilter(filters);
-                firstTime = false;
+                ImageControl.Source = await _imaging.ApplyBasicFilter(filters);
+                _firstTime = false;
             }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            imaging.IsRenderingChanged -= OnIsRenderingChanged;
+            _imaging.IsRenderingChanged -= OnIsRenderingChanged;
             base.OnNavigatedFrom(e);
         }
 
@@ -131,7 +131,7 @@ namespace simple_filter_mixer
 
                 if (App.ChosenPhoto != null)
                 {
-                    await imaging.RenderPlainPhoto(ImageControl);
+                    await _imaging.RenderPlainPhoto(ImageControl);
                 }
             }
         }
@@ -143,7 +143,7 @@ namespace simple_filter_mixer
 
         private void OnAboutClicked(object sender, RoutedEventArgs e)
         {
-            //Frame.Navigate(typeof(AboutPage));
+            Frame.Navigate(typeof(AboutPage));
         }
 
         private async System.Threading.Tasks.Task<double> ResolveDisplayRatioAsync()

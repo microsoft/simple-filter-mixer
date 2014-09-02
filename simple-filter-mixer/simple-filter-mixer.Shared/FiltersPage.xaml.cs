@@ -18,12 +18,13 @@ namespace simple_filter_mixer
     /// </summary>
     public sealed partial class FiltersPage : Page
     {
-        private NavigationHelper navigationHelper;
-        private ObservableDictionary defaultViewModel = new ObservableDictionary();
-        private Dictionary<object, bool> changesList = new Dictionary<object, bool>();
-        private bool applyFilterSelection = false;
-        private bool appChangingFilterSelection = false;
-        private static bool settingsPossiblyChanged = false;
+        private NavigationHelper _navigationHelper;
+        private ObservableDictionary _defaultViewModel = new ObservableDictionary();
+        private Dictionary<object, bool> _changesList = new Dictionary<object, bool>();
+        private static object _itemBeingEdited = null;
+        private bool _applyFilterSelection = false;
+        private bool _appChangingFilterSelection = false;
+        private static bool _settingsPossiblyChanged = false;
 
         public static bool FiltersChanged
         {
@@ -36,7 +37,7 @@ namespace simple_filter_mixer
         /// </summary>
         public NavigationHelper NavigationHelper
         {
-            get { return this.navigationHelper; }
+            get { return _navigationHelper; }
         }
 
         /// <summary>
@@ -45,16 +46,16 @@ namespace simple_filter_mixer
         /// </summary>
         public ObservableDictionary DefaultViewModel
         {
-            get { return this.defaultViewModel; }
+            get { return this._defaultViewModel; }
         }
 
         public FiltersPage()
         {
             this.InitializeComponent();
 
-            this.navigationHelper = new NavigationHelper(this);
-            this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
-            this.navigationHelper.SaveState += this.NavigationHelper_SaveState;
+            _navigationHelper = new NavigationHelper(this);
+            _navigationHelper.LoadState += this.NavigationHelper_LoadState;
+            _navigationHelper.SaveState += this.NavigationHelper_SaveState;
         }
 
         /// <summary>
@@ -93,7 +94,6 @@ namespace simple_filter_mixer
             {
                 App.ChosenFilters.Add(item);
             }
-
         }
 
         #region NavigationHelper registration
@@ -113,7 +113,7 @@ namespace simple_filter_mixer
         /// handlers that cannot cancel the navigation request.</param>
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            this.navigationHelper.OnNavigatedTo(e);
+            _navigationHelper.OnNavigatedTo(e);
 
             FiltersChanged = false;
             FilterView.DataContext = Imaging.FilterList;
@@ -123,7 +123,7 @@ namespace simple_filter_mixer
                 return;
             }
 
-            appChangingFilterSelection = true;
+            _appChangingFilterSelection = true;
 
             // Restore the previous selection of filters
             foreach (var listItem in from filter in App.ChosenFilters 
@@ -133,10 +133,16 @@ namespace simple_filter_mixer
                 FilterView.SelectedItems.Add(listItem);
             }
 
-            appChangingFilterSelection = false;
-            changesList.Clear();
+            _appChangingFilterSelection = false;
+            _changesList.Clear();
 
-            if (settingsPossiblyChanged)
+            if (_itemBeingEdited != null)
+            {
+                FilterView.ScrollIntoView(_itemBeingEdited);
+                _itemBeingEdited = null;
+            }
+
+            if (_settingsPossiblyChanged)
             {
                 ApplyButton.IsEnabled = true;
             }
@@ -144,14 +150,14 @@ namespace simple_filter_mixer
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            if (!applyFilterSelection && changesList.Count > 0)
+            if (!_applyFilterSelection && _changesList.Count > 0)
             {
-                appChangingFilterSelection = true;
+                _appChangingFilterSelection = true;
                 bool wasSelected = false;
 
-                foreach (object item in changesList.Keys)
+                foreach (object item in _changesList.Keys)
                 {
-                    if (changesList.TryGetValue(item, out wasSelected))
+                    if (_changesList.TryGetValue(item, out wasSelected))
                     {
                         if (wasSelected && FilterView.SelectedItems.Contains(item))
                         {
@@ -164,18 +170,18 @@ namespace simple_filter_mixer
                     }
                 }
 
-                changesList.Clear();
-                appChangingFilterSelection = false;
+                _changesList.Clear();
+                _appChangingFilterSelection = false;
             }
 
-            this.navigationHelper.OnNavigatedFrom(e);
+            _navigationHelper.OnNavigatedFrom(e);
         }
 
         #endregion
 
         private void OnGridViewSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (appChangingFilterSelection)
+            if (_appChangingFilterSelection)
             {
                 return;
             }
@@ -210,8 +216,8 @@ namespace simple_filter_mixer
 
         private void OnApplyButtonClicked(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            settingsPossiblyChanged = false;
-            applyFilterSelection = true;
+            _settingsPossiblyChanged = false;
+            _applyFilterSelection = true;
             FiltersChanged = true;
             NavigationHelper.GoBack();
         }
@@ -229,8 +235,9 @@ namespace simple_filter_mixer
                 if (filterListObject != null)
                 {
                     Debug.WriteLine("FiltersPage: SetFilterParameters(): " + filterListObject.Name);
+                    _itemBeingEdited = itemControl;
                     this.Frame.Navigate(typeof (SettingsPage), filterListObject);
-                    settingsPossiblyChanged = true;
+                    _settingsPossiblyChanged = true;
                     ApplyButton.IsEnabled = true;
                 }
             }
@@ -240,24 +247,24 @@ namespace simple_filter_mixer
         {
             bool wasPreviouslySelected = false;
 
-            if (changesList.TryGetValue(item, out wasPreviouslySelected))
+            if (_changesList.TryGetValue(item, out wasPreviouslySelected))
             {
                 if ((wasPreviouslySelected && !wasSelected)
                     || (!wasPreviouslySelected && wasSelected))
                 {
-                    changesList.Remove(item);
+                    _changesList.Remove(item);
                 }
             }
             else
             {
-                changesList.Add(item, wasSelected);
+                _changesList.Add(item, wasSelected);
             }
 
-            if (!ApplyButton.IsEnabled && changesList.Count > 0)
+            if (!ApplyButton.IsEnabled && _changesList.Count > 0)
             {
                 ApplyButton.IsEnabled = true;
             }
-            else if (ApplyButton.IsEnabled && !settingsPossiblyChanged && changesList.Count == 0)
+            else if (ApplyButton.IsEnabled && !_settingsPossiblyChanged && _changesList.Count == 0)
             {
                 ApplyButton.IsEnabled = false;
             }

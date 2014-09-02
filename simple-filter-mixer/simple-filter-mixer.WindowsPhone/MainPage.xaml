@@ -20,21 +20,35 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
         <!-- Title Panel -->
         <StackPanel Grid.Row="0" Margin="0,0,0,0">
             <TextBlock Text="NOKIA IMAGING SDK" Style="{ThemeResource TitleTextBlockStyle}" Margin="19,12,0,0"/>
-            <TextBlock Text="filter mixer" Margin="19,-6.5,0,26.5" Style="{ThemeResource HeaderTextBlockStyle}" CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}"/>
-            <ProgressBar x:Name="MyProgressBar" Height="10" IsIndeterminate="True" Visibility="Collapsed" />
+            <TextBlock Text="Simple Filter Mixer" Margin="19,-6,0,6" Style="{ThemeResource HeaderTextBlockStyle}" CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}"/>
+            <StackPanel Height="10">
+                <ProgressBar x:Name="MyProgressBar" Height="10" IsIndeterminate="True" Visibility="Collapsed" />
+            </StackPanel>
         </StackPanel>
-        <Image Grid.Row="1" x:Name="ImageControl" HorizontalAlignment="Left" Height="525" Stretch="Uniform" Margin="10,10,10,0" Source="Assets/default.jpg" />
+        <ScrollViewer Grid.Row="1">
+            <Image
+                x:Name="ImageControl"
+                Margin="10,10,10,10"
+                Stretch="Uniform"
+                Source="Assets/default.jpg"
+                />
+        </ScrollViewer>
     </Grid>
+    
     <Page.BottomAppBar>
         <CommandBar >
             <AppBarButton x:Uid="ImageButton" x:Name="PhotoButton" Label="photo" Icon="camera" Click="OnPhotoClicked"/>
             <AppBarButton x:Uid="FiltersButton" x:Name="FilterButton" Label="filters" Icon="Filter" Click="OnFiltersClicked"/>
             <CommandBar.SecondaryCommands>
-                <AppBarButton x:Uid="AboutButton" x:Name="AboutButton" Label="About..." Click="OnAboutClicked"/>
+                <AppBarButton x:Uid="AboutButton" x:Name="AboutButton" Label="about" Click="OnAboutClicked"/>
             </CommandBar.SecondaryCommands>
         </CommandBar>
     </Page.BottomAppBar>
