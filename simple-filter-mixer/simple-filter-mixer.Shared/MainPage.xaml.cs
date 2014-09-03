@@ -17,9 +17,9 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
+using Nokia.Graphics.Imaging;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
-using Nokia.Graphics.Imaging;
 
 namespace simple_filter_mixer
 {
@@ -69,9 +69,12 @@ namespace simple_filter_mixer
             Imaging.CreateFilters(filters);
             _imaging.IsRenderingChanged += OnIsRenderingChanged;
 
-            if (FiltersPage.FiltersChanged || _firstTime)
+            if (FiltersPage.FiltersChanged || SettingsPage.SettingsChanged || _firstTime)
             {
+                // Need to render the image
                 ImageControl.Source = await _imaging.ApplyBasicFilter(filters);
+                FiltersPage.FiltersChanged = false;
+                SettingsPage.SettingsChanged = false;
                 _firstTime = false;
             }
         }
@@ -100,11 +103,15 @@ namespace simple_filter_mixer
             }
         }
         
+#if WINDOWS_PHONE_APP
         private void OnPhotoClicked(object sender, RoutedEventArgs e)
+#else
+        private async void OnPhotoClicked(object sender, RoutedEventArgs e)
+#endif
         {
             var picker = new FileOpenPicker();
 
-            // Filter to include a sample subset of file types. 
+            // Filter to include a sample subset of file types
             picker.FileTypeFilter.Add(".jpg");
             picker.FileTypeFilter.Add(".jpeg");
             picker.FileTypeFilter.Add(".bmp");
@@ -113,11 +120,21 @@ namespace simple_filter_mixer
             picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
             picker.ViewMode = PickerViewMode.Thumbnail;
 
+#if WINDOWS_PHONE_APP
             App.ContinuationEventArgsChanged += App_ContinuationEventArgsChanged;
 
             picker.PickSingleFileAndContinue(); 
+#else
+            App.ChosenPhoto = await picker.PickSingleFileAsync();
+
+            if (App.ChosenPhoto != null)
+            {
+                await _imaging.RenderPlainPhoto(ImageControl);
+            }
+#endif
         }
 
+#if WINDOWS_PHONE_APP
         private async void App_ContinuationEventArgsChanged(object sender, IContinuationActivatedEventArgs e)
         {
             App.ContinuationEventArgsChanged -= App_ContinuationEventArgsChanged;
@@ -135,6 +152,7 @@ namespace simple_filter_mixer
                 }
             }
         }
+#endif
 
         private void OnFiltersClicked(object sender, RoutedEventArgs e)
         {
@@ -143,10 +161,12 @@ namespace simple_filter_mixer
 
         private void OnAboutClicked(object sender, RoutedEventArgs e)
         {
+#if WINDOWS_PHONE_APP
             Frame.Navigate(typeof(AboutPage));
+#endif
         }
 
-        private async System.Threading.Tasks.Task<double> ResolveDisplayRatioAsync()
+        public static async System.Threading.Tasks.Task<double> ResolveDisplayRatioAsync()
         {
             double rawPixelsPerViewPixel = 0;
             double screenResolutionX = 0;
@@ -155,8 +175,7 @@ namespace simple_filter_mixer
             await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
                 Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                 {
-                    Windows.Graphics.Display.DisplayInformation displayInformation =
-                        Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
+                    Windows.Graphics.Display.DisplayInformation displayInformation = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
                     rawPixelsPerViewPixel = displayInformation.RawPixelsPerViewPixel;
                     screenResolutionX = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Bounds.Width * rawPixelsPerViewPixel;
                     screenResolutionY = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Bounds.Height * rawPixelsPerViewPixel;

@@ -28,6 +28,7 @@
                         AutomationProperties.ItemType="Navigation Button"/>
             <TextBlock x:Name="pageTitle" Text="{StaticResource AppName}" Style="{StaticResource HeaderTextBlockStyle}" Grid.Column="1" 
                         IsHitTestVisible="false" TextWrapping="NoWrap" VerticalAlignment="Bottom" Margin="0,0,30,5"/>
+            <ProgressBar x:Name="MyProgressBar" Grid.Row="1" IsIndeterminate="True" Visibility="Collapsed" />
         </Grid>
     </Grid>
     <Page.BottomAppBar>

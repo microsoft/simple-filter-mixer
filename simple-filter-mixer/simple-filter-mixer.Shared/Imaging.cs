@@ -147,75 +147,125 @@ namespace simple_filter_mixer
                     continue;
                 }
 
-                // Format the fully qualified name of the class
-                var type = string.Format(
-                    "Nokia.Graphics.Imaging.{0}, Nokia.Graphics.Imaging, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime",
-                    selectedFilter.Name);
+                var filter = CreateFilter(selectedFilter.Name, selectedFilter.Constructor, selectedFilter.Parameters);
 
-                // Use reflection to create the filter class
-                var sampleEffect = Type.GetType(type);
-                if (sampleEffect != null)
+                if (filter != null)
                 {
-                    var filter = (IFilter)Activator.CreateInstance(sampleEffect, selectedFilter.Constructor);
-                    string nameOfType = "";
-                    PropertyInfo info = null;
-
-                    try
-                    {
-                        // Apply changed parameter values if any
-                        if (selectedFilter.Parameters != null)
-                        {
-                            foreach (var property in selectedFilter.Parameters)
-                            {
-                                info = sampleEffect.GetRuntimeProperty(property.Key);
-                                if (info != null && info.Name == property.Key)
-                                {
-                                    nameOfType = info.PropertyType.ToString().ToLower();
-                                    switch (nameOfType)
-                                    {
-                                        case "system.double":
-                                            info.SetValue(filter, Convert.ToDouble(property.Value));
-                                            break;
-                                        case "system.string":
-                                            info.SetValue(filter, property.Value.ToString());
-                                            break;
-                                        case "system.boolean":
-                                            info.SetValue(filter, property.Value.ToString());
-                                            break;
-                                        case "system.int32":
-                                            info.SetValue(filter, Convert.ToInt32(property.Value));
-                                            break;
-                                        case "nokia.graphics.imaging.blurregionshape":
-                                            info.SetValue(filter, Convert.ToInt32(property.Value));
-                                            break;
-                                        case "windows.foundation.rect":
-                                            info.SetValue(filter, (Rect)property.Value);
-                                            break;
-                                        case "windows.ui.color":
-                                            info.SetValue(filter, (Color)property.Value);
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (info != null)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Setting property value: " + info.Name + " (" + nameOfType + ") failed with message:\r\n" +
-                                                               ex.Message);
-                        }
-                        else
-                        {
-                            Debug.WriteLine(ex.Message);
-                        }
-                    }
-
                     filters.Add(filter);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns a new filter instance, which is created using reflection
+        /// dynamically at runtime.
+        /// </summary>
+        /// <param name="filterClassName">Filter class name.</param>
+        /// <param name="constructorArguments"></param>
+        /// <param name="filterParameters">Filter parameters. Can be null.</param>
+        /// <returns>A new filter instance or null in case of a failure.</returns>
+        public static IFilter CreateFilter(string filterClassName, object[] constructorArguments, Dictionary<string, object> filterParameters = null)
+        {
+            if (filterClassName == null || filterClassName.Length == 0)
+            {
+                Debug.WriteLine("Imaging: CreateFilter(): Invalid class name!");
+                return null;
+            }
+
+            // Format the fully qualified name of the class
+            var type = string.Format(
+                "Nokia.Graphics.Imaging.{0}, Nokia.Graphics.Imaging, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime",
+                filterClassName);
+
+            // Use reflection to create the filter class
+            var filterType = Type.GetType(type);
+
+            if (filterType == null)
+            {
+                Debug.WriteLine("Imaging: CreateFilter(): Failed to get the filter type!");
+                return null;
+            }
+
+            var filter = (IFilter)Activator.CreateInstance(filterType, constructorArguments);
+
+            // Apply changed parameter values if any
+            if (filterParameters != null)
+            {
+                SetFilterParameters(ref filter, filterParameters);
+            }
+
+            return filter;
+        }
+
+        /// <summary>
+        /// Sets the given parameter values for the given filter.
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <param name="filterParameters"></param>
+        public static void SetFilterParameters(ref IFilter filter, Dictionary<string, object> filterParameters)
+        {
+            if (filterParameters == null || filterParameters.Count == 0)
+            {
+                Debug.WriteLine("SetFilterParameters(): No filter parameters given!");
+                return;
+            }
+
+            PropertyInfo propertyInfo = null;
+            var filterType = filter.GetType();
+            string nameOfType = "";
+
+            try
+            {
+                foreach (var parameter in filterParameters)
+                {
+                    propertyInfo = filterType.GetRuntimeProperty(parameter.Key);
+
+                    if (propertyInfo == null || propertyInfo.Name != parameter.Key)
+                    {
+                        continue;
+                    }
+
+                    nameOfType = propertyInfo.PropertyType.ToString().ToLower();
+
+                    switch (nameOfType)
+                    {
+                        case "system.double":
+                            propertyInfo.SetValue(filter, Convert.ToDouble(parameter.Value));
+                            break;
+                        case "system.string":
+                            propertyInfo.SetValue(filter, parameter.Value.ToString());
+                            break;
+                        case "system.boolean":
+                            propertyInfo.SetValue(filter, parameter.Value.ToString());
+                            break;
+                        case "system.int32":
+                            propertyInfo.SetValue(filter, Convert.ToInt32(parameter.Value));
+                            break;
+                        case "nokia.graphics.imaging.blurregionshape":
+                            propertyInfo.SetValue(filter, Convert.ToInt32(parameter.Value));
+                            break;
+                        case "windows.foundation.rect":
+                            propertyInfo.SetValue(filter, (Windows.Foundation.Rect)parameter.Value);
+                            break;
+                        case "windows.ui.color":
+                            propertyInfo.SetValue(filter, (Windows.UI.Color)parameter.Value);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                if (propertyInfo != null)
+                {
+                    Debug.WriteLine("SetFilterParameters(): Setting property value: "
+                        + propertyInfo.Name + " (" + nameOfType + ") failed with message: " +
+                        e.Message);
+                }
+                else
+                {
+                    Debug.WriteLine("SetFilterParameters(): Exception: " + e.Message);
                 }
             }
         }

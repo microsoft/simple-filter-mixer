@@ -20,13 +20,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Common\ObservableDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\RelayCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\SuspensionManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DataModel\ConstructorObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataModel\FilterListObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FilterGridItemControl.xaml.cs">
       <DependentUpon>FilterGridItemControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)FiltersPage.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Imaging.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MainPage.xaml.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SettingsPage.xaml.cs" />
   </ItemGroup>
   <ItemGroup>

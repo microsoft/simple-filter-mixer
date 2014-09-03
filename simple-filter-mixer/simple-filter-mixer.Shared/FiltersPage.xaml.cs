@@ -7,6 +7,11 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
+
+#if WINDOWS_PHONE_APP
+using Windows.Phone.UI.Input;
+#endif
+
 using simple_filter_mixer.DataModel;
 
 // The Basic Page item template is documented at http://go.microsoft.com/fwlink/?LinkID=390556
@@ -19,17 +24,13 @@ namespace simple_filter_mixer
     public sealed partial class FiltersPage : Page
     {
         private NavigationHelper _navigationHelper;
-        private ObservableDictionary _defaultViewModel = new ObservableDictionary();
-        private Dictionary<object, bool> _changesList = new Dictionary<object, bool>();
+        private static List<object> _tempList = new List<object>();
         private static object _itemBeingEdited = null;
-        private bool _applyFilterSelection = false;
-        private bool _appChangingFilterSelection = false;
-        private static bool _settingsPossiblyChanged = false;
 
         public static bool FiltersChanged
         {
             get;
-            private set;
+            set;
         }
 
         /// <summary>
@@ -40,60 +41,11 @@ namespace simple_filter_mixer
             get { return _navigationHelper; }
         }
 
-        /// <summary>
-        /// Gets the view model for this <see cref="Page"/>.
-        /// This can be changed to a strongly typed view model.
-        /// </summary>
-        public ObservableDictionary DefaultViewModel
-        {
-            get { return this._defaultViewModel; }
-        }
-
         public FiltersPage()
         {
             this.InitializeComponent();
 
             _navigationHelper = new NavigationHelper(this);
-            _navigationHelper.LoadState += this.NavigationHelper_LoadState;
-            _navigationHelper.SaveState += this.NavigationHelper_SaveState;
-        }
-
-        /// <summary>
-        /// Populates the page with content passed during navigation.  Any saved state is also
-        /// provided when recreating a page from a prior session.
-        /// </summary>
-        /// <param name="sender">
-        /// The source of the event; typically <see cref="NavigationHelper"/>
-        /// </param>
-        /// <param name="e">Event data that provides both the navigation parameter passed to
-        /// <see cref="Frame.Navigate(Type, Object)"/> when this page was initially requested and
-        /// a dictionary of state preserved by this page during an earlier
-        /// session.  The state will be null the first time a page is visited.</param>
-        private void NavigationHelper_LoadState(object sender, LoadStateEventArgs e)
-        {
-        }
-
-        /// <summary>
-        /// Preserves state associated with this page in case the application is suspended or the
-        /// page is discarded from the navigation cache.  Values must conform to the serialization
-        /// requirements of <see cref="SuspensionManager.SessionState"/>.
-        /// </summary>
-        /// <param name="sender">The source of the event; typically <see cref="NavigationHelper"/></param>
-        /// <param name="e">Event data that provides an empty dictionary to be populated with
-        /// serializable state.</param>
-        private void NavigationHelper_SaveState(object sender, SaveStateEventArgs e)
-        {
-            if (App.ChosenFilters != null)
-                App.ChosenFilters.Clear();
-            else
-            {
-                App.ChosenFilters = new List<FilterListObject>();
-            }
-
-            foreach (FilterListObject item in FilterView.SelectedItems)
-            {
-                App.ChosenFilters.Add(item);
-            }
         }
 
         #region NavigationHelper registration
@@ -115,64 +67,43 @@ namespace simple_filter_mixer
         {
             _navigationHelper.OnNavigatedTo(e);
 
-            FiltersChanged = false;
-            FilterView.DataContext = Imaging.FilterList;
+            FilterGridView.DataContext = Imaging.FilterList;
 
-            if (App.ChosenFilters == null || FilterView.Items == null)
+            if (_tempList == null || FilterGridView.Items == null)
             {
                 return;
             }
 
-            _appChangingFilterSelection = true;
+            FilterGridView.SelectionChanged -= OnGridViewSelectionChanged;
 
             // Restore the previous selection of filters
-            foreach (var listItem in from filter in App.ChosenFilters 
-                                     from listItem in FilterView.Items.Cast<FilterListObject>() 
+            foreach (var listItem in from filter in _tempList.Cast<FilterListObject>()
+                                     from listItem in FilterGridView.Items.Cast<FilterListObject>() 
                                      where listItem.Name == filter.Name select listItem)
             {
-                FilterView.SelectedItems.Add(listItem);
+                FilterGridView.SelectedItems.Add(listItem);
             }
 
-            _appChangingFilterSelection = false;
-            _changesList.Clear();
+            FilterGridView.SelectionChanged += OnGridViewSelectionChanged;
 
             if (_itemBeingEdited != null)
             {
-                FilterView.ScrollIntoView(_itemBeingEdited);
+                FilterGridView.ScrollIntoView(_itemBeingEdited);
                 _itemBeingEdited = null;
             }
 
-            if (_settingsPossiblyChanged)
-            {
-                ApplyButton.IsEnabled = true;
-            }
+            CheckIfApplyButtonShouldBeEnabled();
+
+#if WINDOWS_PHONE_APP
+            HardwareButtons.BackPressed += OnBackPressed;
+#endif
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            if (!_applyFilterSelection && _changesList.Count > 0)
-            {
-                _appChangingFilterSelection = true;
-                bool wasSelected = false;
-
-                foreach (object item in _changesList.Keys)
-                {
-                    if (_changesList.TryGetValue(item, out wasSelected))
-                    {
-                        if (wasSelected && FilterView.SelectedItems.Contains(item))
-                        {
-                            FilterView.SelectedItems.Remove(item);
-                        }
-                        else if (!wasSelected)
-                        {
-                            FilterView.SelectedItems.Add(item);
-                        }
-                    }
-                }
-
-                _changesList.Clear();
-                _appChangingFilterSelection = false;
-            }
+#if WINDOWS_PHONE_APP
+            HardwareButtons.BackPressed -= OnBackPressed;
+#endif
 
             _navigationHelper.OnNavigatedFrom(e);
         }
@@ -181,25 +112,36 @@ namespace simple_filter_mixer
 
         private void OnGridViewSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_appChangingFilterSelection)
-            {
-                return;
-            }
+            FilterListObject changedItem = null;
+            bool selected = false;
 
             if (e.AddedItems.Count > 0)
             {
-                foreach (object item in e.AddedItems)
-                {
-                    AddChangeToDictionary(item, true);
-                }
+                _tempList.AddRange(e.AddedItems);
+                changedItem = e.AddedItems[0] as FilterListObject;
+                selected = true;
             }
             else if (e.RemovedItems.Count > 0)
             {
                 foreach (object item in e.RemovedItems)
                 {
-                    AddChangeToDictionary(item, false);
+                    if (_tempList.Contains(item))
+                    {
+                        _tempList.Remove(item);
+                    }
                 }
+
+                changedItem = e.RemovedItems[0] as FilterListObject;
             }
+
+            if (changedItem != null)
+            {
+                Debug.WriteLine("FiltersPage: OnGridViewSelectionChanged(): "
+                    + changedItem.Name
+                    + (selected ? " selected" : " deselected"));
+            }
+
+            CheckIfApplyButtonShouldBeEnabled();
         }
 
         private void OnFilterItemDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -216,10 +158,48 @@ namespace simple_filter_mixer
 
         private void OnApplyButtonClicked(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            _settingsPossiblyChanged = false;
-            _applyFilterSelection = true;
+            Debug.WriteLine("FiltersPage: OnApplyButtonClicked()");
             FiltersChanged = true;
+
+            if (App.ChosenFilters != null)
+            {
+                App.ChosenFilters.Clear();
+            }
+            else
+            {
+                App.ChosenFilters = new List<FilterListObject>();
+            }
+
+            foreach (FilterListObject item in _tempList)
+            {
+                App.ChosenFilters.Add(item);
+            }
+
             NavigationHelper.GoBack();
+        }
+
+#if WINDOWS_PHONE_APP
+        private void OnBackPressed(object sender, BackPressedEventArgs e)
+        {
+            Debug.WriteLine("FiltersPage: OnBackPressed()");
+            _tempList.Clear();
+
+            foreach (var listItem in from filter in App.ChosenFilters
+                                     from listItem in FilterGridView.Items.Cast<FilterListObject>()
+                                     where listItem.Name == filter.Name
+                                     select listItem)
+            {
+
+                _tempList.Add(listItem);
+            }
+        }
+#endif
+
+        private void OnAboutClicked(object sender, RoutedEventArgs e)
+        {
+#if WINDOWS_PHONE_APP
+            Frame.Navigate(typeof(AboutPage));
+#endif
         }
 
         /// <summary>
@@ -237,34 +217,73 @@ namespace simple_filter_mixer
                     Debug.WriteLine("FiltersPage: SetFilterParameters(): " + filterListObject.Name);
                     _itemBeingEdited = itemControl;
                     this.Frame.Navigate(typeof (SettingsPage), filterListObject);
-                    _settingsPossiblyChanged = true;
                     ApplyButton.IsEnabled = true;
                 }
             }
         }
 
-        private void AddChangeToDictionary(object item, bool wasSelected)
+        /// <summary>
+        /// Compares the given lists. Note that this method expects that each
+        /// filter in eather of the lists is unique (i.e. no two filters with
+        /// same name in one list).
+        /// </summary>
+        /// <param name="listA"></param>
+        /// <param name="listB"></param>
+        /// <returns>True if the lists match, false otherwise.</returns>
+        private bool FilterListsMatch(IList<FilterListObject> listA, List<object> listB)
         {
-            bool wasPreviouslySelected = false;
+            bool match = true;
 
-            if (_changesList.TryGetValue(item, out wasPreviouslySelected))
+            // Null list is considered the same as an empty one
+            if ((listA == null || listA.Count == 0) && (listB == null || listB.Count == 0))
             {
-                if ((wasPreviouslySelected && !wasSelected)
-                    || (!wasPreviouslySelected && wasSelected))
-                {
-                    _changesList.Remove(item);
-                }
+                match = true;
+            }
+            else if (listA == null || listB == null || listA.Count != listB.Count)
+            {
+                match = false;
             }
             else
             {
-                _changesList.Add(item, wasSelected);
+                for (int i = 0; i < listA.Count; ++i)
+                {
+                    FilterListObject itemA = listA[i] as FilterListObject;
+                    FilterListObject itemB = null;
+                    bool found = false;
+
+                    for (int j = 0; j < listB.Count; ++j)
+                    {
+                        itemB = listB[i] as FilterListObject;
+
+                        if (itemA.Name.Equals(itemB.Name))
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        match = false;
+                        break;
+                    }
+                }
             }
 
-            if (!ApplyButton.IsEnabled && _changesList.Count > 0)
+            return match;
+        }
+
+        private void CheckIfApplyButtonShouldBeEnabled()
+        {
+            if (!ApplyButton.IsEnabled
+                && (SettingsPage.SettingsChanged
+                    || !FilterListsMatch(App.ChosenFilters, _tempList)))
             {
                 ApplyButton.IsEnabled = true;
             }
-            else if (ApplyButton.IsEnabled && !_settingsPossiblyChanged && _changesList.Count == 0)
+            else if (ApplyButton.IsEnabled
+                     && !SettingsPage.SettingsChanged
+                     && FilterListsMatch(App.ChosenFilters, _tempList))
             {
                 ApplyButton.IsEnabled = false;
             }

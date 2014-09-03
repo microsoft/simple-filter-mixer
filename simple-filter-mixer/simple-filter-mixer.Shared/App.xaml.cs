@@ -65,6 +65,7 @@ namespace simple_filter_mixer
         {
             this.InitializeComponent();
             this.Suspending += this.OnSuspending;
+            //HardwareButtons.BackPressed += OnBackPressed;
         }
 
 #if WINDOWS_PHONE_APP

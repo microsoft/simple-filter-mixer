@@ -31,7 +31,7 @@
             <RowDefinition Height="140"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <GridView Grid.Row="1" x:Name="FilterView" ItemsSource="{Binding}" SelectionMode="Multiple" Margin="40,10" SelectionChanged="OnGridViewSelectionChanged">
+        <GridView Grid.Row="1" x:Name="FilterGridView" ItemsSource="{Binding}" SelectionMode="Multiple" Margin="40,10" SelectionChanged="OnGridViewSelectionChanged">
             <GridView.ItemTemplate>
                 <DataTemplate>
                     <local:FilterGridItemControl DoubleTapped="OnFilterItemDoubleTapped" Holding="OnFilterItemLongPressed" />

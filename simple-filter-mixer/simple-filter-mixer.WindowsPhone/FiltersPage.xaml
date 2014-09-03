@@ -27,7 +27,7 @@
         </StackPanel>
 
         <GridView
-            x:Name="FilterView"
+            x:Name="FilterGridView"
             Grid.Row="1"
             Margin="0,0,0,0"
             Padding="0,0,0,0"
@@ -46,6 +46,9 @@
     <Page.BottomAppBar>
         <CommandBar>
             <AppBarButton x:Uid="Apply" x:Name="ApplyButton" Icon="Accept" Label="apply" IsEnabled="False" Click="OnApplyButtonClicked" />
+            <CommandBar.SecondaryCommands>
+                <AppBarButton x:Uid="AboutButton" x:Name="AboutButton" Label="about" Click="OnAboutClicked"/>
+            </CommandBar.SecondaryCommands>
         </CommandBar>
     </Page.BottomAppBar>
 </Page>
