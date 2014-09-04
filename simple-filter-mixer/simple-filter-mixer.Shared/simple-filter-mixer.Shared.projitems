@@ -20,7 +20,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Common\ObservableDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\RelayCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\SuspensionManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DataModel\FilterListObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataModel\FilterDefinitions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataModel\FilterItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FilterGridItemControl.xaml.cs">
       <DependentUpon>FilterGridItemControl.xaml</DependentUpon>
     </Compile>

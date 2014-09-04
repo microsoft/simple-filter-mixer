@@ -11,7 +11,7 @@ namespace simple_filter_mixer.Common
         {
             if (value != null)
             {
-                var fqn = ((FilterListObject)value).Name;
+                var fqn = ((FilterItem)value).Name;
                 int index = fqn.LastIndexOf(".", StringComparison.CurrentCultureIgnoreCase);
                 value = fqn.Substring(index + 1);
             }

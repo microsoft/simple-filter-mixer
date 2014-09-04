@@ -34,7 +34,7 @@ namespace simple_filter_mixer
         public static IContinuationActivatedEventArgs ContinuationActivatedEventArgs { get; private set; }
 #endif
         private static StorageFile _chosenPhoto;
-        private static List<FilterListObject> chosenFilters;
+        private static List<FilterItem> chosenFilters;
 
         public static StorageFile ChosenPhoto
         {
@@ -45,7 +45,7 @@ namespace simple_filter_mixer
             }
         }
 
-        public static List<FilterListObject> ChosenFilters
+        public static List<FilterItem> ChosenFilters
         {
             get { return chosenFilters; }
             set { chosenFilters = value; }

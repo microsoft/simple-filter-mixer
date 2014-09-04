@@ -14,107 +14,10 @@ using simple_filter_mixer.DataModel;
 
 namespace simple_filter_mixer
 {
-    public class Helper
-    {
-        // Used when needed a second image for the filter
-        public static readonly List<SplitToneRange> SplitList = new List<SplitToneRange> {
-                new SplitToneRange(100, 150, Windows.UI.Color.FromArgb(255, 155, 145, 138)),
-                new SplitToneRange(160, 169, Windows.UI.Color.FromArgb(255, 155, 230, 142)),
-                new SplitToneRange(170, 172, Windows.UI.Color.FromArgb(255, 155, 130, 49)),
-                new SplitToneRange(175, 180, Windows.UI.Color.FromArgb(255, 255, 245, 238))
-            };
-
-        public Helper()
-        {
-        }
-
-        public static ColorImageSource GetColorSource()
-        {
-            return new ColorImageSource(new Windows.Foundation.Size(640, 480), Windows.UI.Color.FromArgb(255, 255, 0, 0));
-        }
-
-        public static StorageFileImageSource GetMaskSource()
-        {
-            const string imageFile = @"Assets\mask.jpg";
-            StorageFile file = null;
-
-            try
-            {
-                file = Windows.ApplicationModel.Package.Current.InstalledLocation.GetFileAsync(imageFile).AsTask().Result;
-
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
-            }
-            return new StorageFileImageSource(file);
-        }
-    }
     public class Imaging
     {
         public EventHandler<bool> IsRenderingChanged;
-        private Helper help = new Helper();
-        
         private bool _rendering; // Do not start rendering if we haven't finished previous rendering yet
-
-        public static readonly List<FilterListObject> FilterList = new List<FilterListObject>
-        {
-            new FilterListObject("AntiqueFilter"),
-            new FilterListObject("AutoEnhanceFilter") {Constructor = new object[]{true, true}},
-            new FilterListObject("AutoLevelsFilter"),
-            new FilterListObject("BlendFilter") { Constructor = new object[]{Helper.GetColorSource(), BlendFunction.Colorburn, 0.8}},
-            new FilterListObject("BlurFilter") { Constructor = new object[]{100}},
-            new FilterListObject("BrightnessFilter") { Constructor = new object[]{0.8}},
-            new FilterListObject("CartoonFilter") { Constructor = new object[]{true}},
-            new FilterListObject("ChromaKeyFilter") { Constructor = new object[]{Windows.UI.Color.FromArgb(255, 255, 255, 255), 0.5}},
-            new FilterListObject("ColorAdjustFilter") { Constructor = new object[]{0.1, -1, 0.5}},
-            new FilterListObject("ColorBoostFilter") { Constructor = new object[]{15}},
-            new FilterListObject("ColorSwapFilter") { Constructor = new object[]{Windows.UI.Color.FromArgb(255, 255, 0, 0),
-                Windows.UI.Color.FromArgb(255, 0, 255, 0), 0.2, true, true}},
-            new FilterListObject("ColorizationFilter") {Constructor = new object[]{Windows.UI.Color.FromArgb(255, 255, 0, 0), 0.2, 0.1}},
-            new FilterListObject("ContrastFilter") {Constructor = new object[]{-0.8}},
-            new FilterListObject("CropFilter") { Constructor = new object[]{new Windows.Foundation.Rect(0, 0, 500, 500)}},
-            new FilterListObject("CurvesFilter"),
-            new FilterListObject("DespeckleFilter") {Constructor = new object[]{DespeckleLevel.High}},
-            new FilterListObject("EmbossFilter") {Constructor = new object[]{0.5}},
-            new FilterListObject("ExposureFilter") {Constructor = new object[]{ExposureMode.Natural, 0.8}},
-            new FilterListObject("FlipFilter") {Constructor = new object[]{FlipMode.Horizontal}}, 
-            new FilterListObject("FogFilter"),
-            new FilterListObject("FoundationFilter") {Constructor = new object[] {new Windows.Foundation.Rect(0, 0, 700, 700)}},
-            new FilterListObject("GrayscaleFilter"),
-            new FilterListObject("GrayscaleNegativeFilter"),
-            new FilterListObject("HueSaturationFilter") {Constructor = new object[]{0.7, 0.7}},
-            new FilterListObject("ImageFusionFilter") {Constructor = new object[]{Helper.GetColorSource(), Helper.GetMaskSource(), false}},
-            new FilterListObject("LevelsFilter") {Constructor = new object[]{0.6, 0.1, 0.4}},
-            new FilterListObject("LocalBoostAutomaticFilter"),
-            new FilterListObject("LocalBoostFilter") {Constructor = new object[]{3, 0.5, 0.5, 0.4}},
-            new FilterListObject("LomoFilter") {Constructor = new object[]{0.7, 0.4, LomoVignetting.High, LomoStyle.Yellow}},
-            new FilterListObject("MagicPenFilter"),
-            new FilterListObject("MilkyFilter"),
-            new FilterListObject("MirrorFilter"),
-            new FilterListObject("MonoColorFilter") {Constructor = new object[]{Windows.UI.Color.FromArgb(255, 255, 0, 0), 0.2}},
-            new FilterListObject("MoonlightFilter") {Constructor = new object[]{23}},
-            new FilterListObject("NegativeFilter"),
-            new FilterListObject("NoiseFilter") {Constructor = new object[]{NoiseLevel.Medium}},
-            new FilterListObject("OilyFilter"),
-            new FilterListObject("PaintFilter") {Constructor = new object[]{2}},
-            new FilterListObject("PosterizeFilter") {Constructor = new object[]{5}},
-            new FilterListObject("ReframingFilter") {Constructor = new object[]{new Windows.Foundation.Rect(0,0,300,300), 30, new Windows.Foundation.Point(0.5,0.5)}},
-            new FilterListObject("RotationFilter") {Constructor = new object[]{45}},
-            new FilterListObject("SepiaFilter"),
-            new FilterListObject("SharpnessFilter") {Constructor = new object[]{7}},
-            new FilterListObject("SketchFilter") {Constructor = new object[]{SketchMode.Color}},
-            new FilterListObject("SolarizeFilter") {Constructor = new object[]{0.5}},
-            //new FilterListObject("SplitToneFilter") {Constructor = new object[]{SplitList}},
-            new FilterListObject("SpotlightFilter") {Constructor = new object[]{new Windows.Foundation.Point(400, 300), 1200, 0.5}},
-            new FilterListObject("StampFilter") {Constructor = new object[]{5, 0.7}},
-            new FilterListObject("TemperatureAndTintFilter") {Constructor = new object[]{-0.5, 1}},
-            new FilterListObject("VignettingFilter") {Constructor = new object[]{0.2, Windows.UI.Color.FromArgb(255, 10, 10, 10)}},
-            new FilterListObject("WarpFilter") {Constructor = new object[]{WarpEffect.HappyFool, 0.7}},
-            new FilterListObject("WatercolorFilter") {Constructor = new object[]{0.7, 0.1}},
-            new FilterListObject("WhiteBalanceFilter") {Constructor = new object[]{WhitePointCalculationMode.Maximum}},
-            new FilterListObject("WhiteboardEnhancementFilter") {Constructor = new object[]{WhiteboardEnhancementMode.Hard}}
-        };
 
         /// <summary>
         /// Load mask image
@@ -132,7 +35,7 @@ namespace simple_filter_mixer
         /// apply the property values if the user has chosen any
         /// </summary>
         /// <param name="filters"></param>
-        public static void CreateFilters(List<IFilter> filters)
+        public static void GetFilters(List<IFilter> filters)
         {
             if (App.ChosenFilters == null)
             {
@@ -140,20 +43,34 @@ namespace simple_filter_mixer
             }
 
             // Get the name of the filter
-            foreach (FilterListObject selectedFilter in App.ChosenFilters)
+            foreach (FilterItem selectedFilterItem in App.ChosenFilters)
             {
-                if (selectedFilter == null)
+                if (selectedFilterItem == null)
                 {
                     continue;
                 }
 
-                var filter = CreateFilter(selectedFilter.Name, selectedFilter.Constructor, selectedFilter.Parameters);
-
-                if (filter != null)
+                if (selectedFilterItem.Filter == null)
                 {
-                    filters.Add(filter);
+                    CreateFilter(selectedFilterItem);
                 }
+                else if (selectedFilterItem.Parameters != null)
+                {
+                    SetFilterParameters(selectedFilterItem.Filter, selectedFilterItem.Parameters);
+                }
+
+                filters.Add(selectedFilterItem.Filter);
             }
+        }
+
+        /// <summary>
+        /// Constructs the IFilter instance of the given FilterItem based on
+        /// its properties. Note: No sanity checks!
+        /// </summary>
+        /// <param name="filterItem"></param>
+        public static void CreateFilter(FilterItem filterItem)
+        {
+            filterItem.Filter = CreateFilter(filterItem.Name, filterItem.Constructor, filterItem.Parameters);
         }
 
         /// <summary>
@@ -191,10 +108,19 @@ namespace simple_filter_mixer
             // Apply changed parameter values if any
             if (filterParameters != null)
             {
-                SetFilterParameters(ref filter, filterParameters);
+                SetFilterParameters(filter, filterParameters);
             }
 
             return filter;
+        }
+
+        /// <summary>
+        /// For convenience.
+        /// </summary>
+        /// <param name="filterItem"></param>
+        public static void SetFilterParameters(FilterItem filterItem)
+        {
+            SetFilterParameters(filterItem.Filter, filterItem.Parameters);
         }
 
         /// <summary>
@@ -202,17 +128,17 @@ namespace simple_filter_mixer
         /// </summary>
         /// <param name="filter"></param>
         /// <param name="filterParameters"></param>
-        public static void SetFilterParameters(ref IFilter filter, Dictionary<string, object> filterParameters)
+        public static void SetFilterParameters(IFilter filter, Dictionary<string, object> filterParameters)
         {
-            if (filterParameters == null || filterParameters.Count == 0)
+            if (filter == null || filterParameters == null || filterParameters.Count == 0)
             {
-                Debug.WriteLine("SetFilterParameters(): No filter parameters given!");
+                Debug.WriteLine("SetFilterParameters(): No filter or parameters given!");
                 return;
             }
 
             PropertyInfo propertyInfo = null;
             var filterType = filter.GetType();
-            string nameOfType = "";
+            string propertyTypeName = "";
 
             try
             {
@@ -225,9 +151,10 @@ namespace simple_filter_mixer
                         continue;
                     }
 
-                    nameOfType = propertyInfo.PropertyType.ToString().ToLower();
+                    Debug.WriteLine("SetFilterParameters(): Setting property: " + parameter.Key + " (" + propertyInfo.PropertyType + ") == " + parameter.Value);
+                    propertyTypeName = propertyInfo.PropertyType.ToString().ToLower();
 
-                    switch (nameOfType)
+                    switch (propertyTypeName)
                     {
                         case "system.double":
                             propertyInfo.SetValue(filter, Convert.ToDouble(parameter.Value));
@@ -236,7 +163,7 @@ namespace simple_filter_mixer
                             propertyInfo.SetValue(filter, parameter.Value.ToString());
                             break;
                         case "system.boolean":
-                            propertyInfo.SetValue(filter, parameter.Value.ToString());
+                            propertyInfo.SetValue(filter, parameter.Value);
                             break;
                         case "system.int32":
                             propertyInfo.SetValue(filter, Convert.ToInt32(parameter.Value));
@@ -251,6 +178,7 @@ namespace simple_filter_mixer
                             propertyInfo.SetValue(filter, (Windows.UI.Color)parameter.Value);
                             break;
                         default:
+                            Debug.WriteLine("SetFilterParameters(): Type " + propertyTypeName + " not handled!");
                             break;
                     }
                 }
@@ -260,7 +188,7 @@ namespace simple_filter_mixer
                 if (propertyInfo != null)
                 {
                     Debug.WriteLine("SetFilterParameters(): Setting property value: "
-                        + propertyInfo.Name + " (" + nameOfType + ") failed with message: " +
+                        + propertyInfo.Name + " (" + propertyTypeName + ") failed with message: " +
                         e.Message);
                 }
                 else

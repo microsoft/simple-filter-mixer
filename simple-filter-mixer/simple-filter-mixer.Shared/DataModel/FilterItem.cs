@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Nokia.Graphics.Imaging;
+using System;
 using System.Collections.Generic;
 using Windows.Storage;
 using Windows.UI.Xaml.Media.Imaging;
 
 namespace simple_filter_mixer.DataModel
 {
-    public class FilterListObject
+    public class FilterItem
     {
         public string Name { get; set; }
-        public BitmapImage Thumbnail { get; set; }
         public object[] Constructor { get; set; }
 
         /// <summary>
@@ -16,11 +16,14 @@ namespace simple_filter_mixer.DataModel
         /// </summary>
         public Dictionary<string, object> Parameters { get; set; }
 
-        public FilterListObject()
+        public IFilter Filter { get; set; }
+        public BitmapImage Thumbnail { get; set; }
+
+        public FilterItem()
         {
         }
 
-        public FilterListObject(string filterName)
+        public FilterItem(string filterName)
         {
             Name = filterName;
 

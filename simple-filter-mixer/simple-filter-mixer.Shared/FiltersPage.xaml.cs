@@ -67,7 +67,7 @@ namespace simple_filter_mixer
         {
             _navigationHelper.OnNavigatedTo(e);
 
-            FilterGridView.DataContext = Imaging.FilterList;
+            FilterGridView.DataContext = FilterDefinitions.FilterItemList;
 
             if (_tempList == null || FilterGridView.Items == null)
             {
@@ -77,8 +77,8 @@ namespace simple_filter_mixer
             FilterGridView.SelectionChanged -= OnGridViewSelectionChanged;
 
             // Restore the previous selection of filters
-            foreach (var listItem in from filter in _tempList.Cast<FilterListObject>()
-                                     from listItem in FilterGridView.Items.Cast<FilterListObject>() 
+            foreach (var listItem in from filter in _tempList.Cast<FilterItem>()
+                                     from listItem in FilterGridView.Items.Cast<FilterItem>() 
                                      where listItem.Name == filter.Name select listItem)
             {
                 FilterGridView.SelectedItems.Add(listItem);
@@ -112,13 +112,13 @@ namespace simple_filter_mixer
 
         private void OnGridViewSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            FilterListObject changedItem = null;
+            FilterItem changedItem = null;
             bool selected = false;
 
             if (e.AddedItems.Count > 0)
             {
                 _tempList.AddRange(e.AddedItems);
-                changedItem = e.AddedItems[0] as FilterListObject;
+                changedItem = e.AddedItems[0] as FilterItem;
                 selected = true;
             }
             else if (e.RemovedItems.Count > 0)
@@ -131,7 +131,7 @@ namespace simple_filter_mixer
                     }
                 }
 
-                changedItem = e.RemovedItems[0] as FilterListObject;
+                changedItem = e.RemovedItems[0] as FilterItem;
             }
 
             if (changedItem != null)
@@ -167,10 +167,10 @@ namespace simple_filter_mixer
             }
             else
             {
-                App.ChosenFilters = new List<FilterListObject>();
+                App.ChosenFilters = new List<FilterItem>();
             }
 
-            foreach (FilterListObject item in _tempList)
+            foreach (FilterItem item in _tempList)
             {
                 App.ChosenFilters.Add(item);
             }
@@ -184,8 +184,13 @@ namespace simple_filter_mixer
             Debug.WriteLine("FiltersPage: OnBackPressed()");
             _tempList.Clear();
 
+            if (App.ChosenFilters == null)
+            {
+                return;
+            }
+
             foreach (var listItem in from filter in App.ChosenFilters
-                                     from listItem in FilterGridView.Items.Cast<FilterListObject>()
+                                     from listItem in FilterGridView.Items.Cast<FilterItem>()
                                      where listItem.Name == filter.Name
                                      select listItem)
             {
@@ -210,7 +215,7 @@ namespace simple_filter_mixer
         {
             if (itemControl != null)
             {
-                var filterListObject = itemControl.FilterPreviewImage.DataContext as FilterListObject;
+                var filterListObject = itemControl.FilterPreviewImage.DataContext as FilterItem;
 
                 if (filterListObject != null)
                 {
@@ -230,7 +235,7 @@ namespace simple_filter_mixer
         /// <param name="listA"></param>
         /// <param name="listB"></param>
         /// <returns>True if the lists match, false otherwise.</returns>
-        private bool FilterListsMatch(IList<FilterListObject> listA, List<object> listB)
+        private bool FilterListsMatch(IList<FilterItem> listA, List<object> listB)
         {
             bool match = true;
 
@@ -247,13 +252,13 @@ namespace simple_filter_mixer
             {
                 for (int i = 0; i < listA.Count; ++i)
                 {
-                    FilterListObject itemA = listA[i] as FilterListObject;
-                    FilterListObject itemB = null;
+                    FilterItem itemA = listA[i] as FilterItem;
+                    FilterItem itemB = null;
                     bool found = false;
 
                     for (int j = 0; j < listB.Count; ++j)
                     {
-                        itemB = listB[i] as FilterListObject;
+                        itemB = listB[i] as FilterItem;
 
                         if (itemA.Name.Equals(itemB.Name))
                         {

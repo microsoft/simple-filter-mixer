@@ -66,7 +66,7 @@ namespace simple_filter_mixer
 
             var filters = new List<IFilter>();
 
-            Imaging.CreateFilters(filters);
+            Imaging.GetFilters(filters);
             _imaging.IsRenderingChanged += OnIsRenderingChanged;
 
             if (FiltersPage.FiltersChanged || SettingsPage.SettingsChanged || _firstTime)
