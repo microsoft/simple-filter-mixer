@@ -9,8 +9,46 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <ScrollViewer>
-            <StackPanel x:Name="OptionPanel" Margin="24,10" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Title Panel -->
+        <StackPanel Grid.Row="0" Margin="19,0,0,0">
+            <TextBlock Text="NOKIA IMAGING SDK" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,12,0,0"/>
+            <TextBlock x:Name="FilterNameTextBlock" Margin="0,-6,0,6" Style="{ThemeResource HeaderTextBlockStyle}" Text="filter properties" />
+        </StackPanel>
+        
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="12,6,12,24">
+                <StackPanel x:Name="FilterPropertiesPanel" />
+                <TextBlock
+                    x:Name="NoPropertiesTextBlock"
+                    Margin="0,12,0,12"
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Text="This filter has no properties to modify."
+                    Visibility="Collapsed"
+                    />
+                <StackPanel Margin="0,32,0,0">
+                    <TextBlock
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        FontStyle="Italic"
+                        TextWrapping="Wrap"
+                        Text="Please check valid value ranges for each parameter from Nokia Imaging SDK API reference at:"
+                        />
+                    <HyperlinkButton NavigateUri="http://developer.nokia.com/resources/library/Imaging_API_Ref">
+                        <HyperlinkButton.Content>
+                            <TextBlock
+                                Style="{ThemeResource BodyTextBlockStyle}"
+                                TextWrapping="Wrap"
+                                Text="http://developer.nokia.com/resources/library/Imaging_API_Ref"
+                                />
+                        </HyperlinkButton.Content>
+                    </HyperlinkButton>
+                </StackPanel>
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </Page>

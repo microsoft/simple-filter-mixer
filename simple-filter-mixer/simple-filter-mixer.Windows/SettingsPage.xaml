@@ -13,21 +13,44 @@
             <RowDefinition Height="140"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="1" x:Name="OptionPanel"></StackPanel>
+
+        <StackPanel x:Name="FilterPropertiesPanel" Grid.Row="1" />
+        
+        <TextBlock
+            x:Name="NoPropertiesTextBlock"
+            Grid.Row="1"
+            Style="{ThemeResource BodyTextBlockStyle}"
+            TextWrapping="Wrap"
+            Text="This filter has no properties to modify."
+            Visibility="Collapsed"
+            />
+        
         <!-- Back button and page title -->
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="backButton" Margin="39,59,39,0" Command="{Binding NavigationHelper.GoBackCommand, ElementName=pageRoot}"
-                        Style="{StaticResource NavigationBackButtonNormalStyle}"
-                        VerticalAlignment="Top"
-                        AutomationProperties.Name="Back"
-                        AutomationProperties.AutomationId="BackButton"
-                        AutomationProperties.ItemType="Navigation Button"/>
-            <TextBlock x:Name="pageTitle" Text="Filters parameters" Style="{StaticResource HeaderTextBlockStyle}" Grid.Column="1" 
-                        IsHitTestVisible="false" TextWrapping="NoWrap" VerticalAlignment="Bottom" Margin="0,0,30,40"/>
+            <Button
+                x:Name="backButton"
+                Margin="39,59,39,0"
+                Command="{Binding NavigationHelper.GoBackCommand, ElementName=pageRoot}"
+                Style="{StaticResource NavigationBackButtonNormalStyle}"
+                VerticalAlignment="Top"
+                AutomationProperties.Name="Back"
+                AutomationProperties.AutomationId="BackButton"
+                AutomationProperties.ItemType="Navigation Button"
+                />
+            <TextBlock
+                x:Name="FilterNameTextBlock"
+                Text="Filters parameters"
+                Style="{StaticResource HeaderTextBlockStyle}"
+                Grid.Column="1" 
+                IsHitTestVisible="false"
+                TextWrapping="NoWrap"
+                VerticalAlignment="Bottom"
+                Margin="0,0,30,40"
+                />
         </Grid>
     </Grid>
     

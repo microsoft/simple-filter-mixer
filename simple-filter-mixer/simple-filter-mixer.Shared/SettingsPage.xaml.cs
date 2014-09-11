@@ -20,11 +20,21 @@ namespace simple_filter_mixer
     /// </summary>
     public sealed partial class SettingsPage : Page
     {
+        private readonly Thickness PropertyItemTopMargin = new Thickness(0, 24, 0, 0);
+        private readonly Thickness PropertyInnerMargin = new Thickness(6, 6, 0, 0);
+        private readonly Thickness RadioButtonMargin = new Thickness(6, 0, 0, 0);
+        private readonly GridLength GridItemWidth = new GridLength(110);
+        private const int PropertyNameFontSize = 22;
+        private const int PropertyValueFontSize = 18;
+        private const int TextBoxMargin = 12;
+        private const int TextBoxWidth = 80;
+
         private enum TextBoxGroupType
         {
             RectType,
             ColorType,
-            PointType
+            PointType,
+            EnumType
         };
 
         private NavigationHelper _navigationHelper;
@@ -64,6 +74,8 @@ namespace simple_filter_mixer
 
                 if (_filterItemBeingEdited != null)
                 {
+                    FilterNameTextBlock.Text = _filterItemBeingEdited.Name;
+
                     if (_filterItemBeingEdited.Filter == null)
                     {
                         Imaging.CreateFilter(_filterItemBeingEdited);
@@ -88,92 +100,65 @@ namespace simple_filter_mixer
         /// </summary>
         private void ExtractProperties()
         {
-            OptionPanel.Children.Add(new TextBlock
-            {
-                Text = "Please check valid value ranges for each parameter from Nokia Imaging SDK API reference at: ",
-                TextWrapping = TextWrapping.WrapWholeWords,
-                FontSize = 20,
-                Margin = new Thickness(10, 10, 0, 0)
-            });
-
-            OptionPanel.Children.Add(new HyperlinkButton
-            {
-                FontSize = 24,
-                Content = "http://developer.nokia.com",
-                NavigateUri = new Uri("http://developer.nokia.com/resources/library/Imaging_API_Ref"),
-                Margin = new Thickness(0, 10, 0, 30),
-                HorizontalAlignment = HorizontalAlignment.Center
-            });
-
             var type = string.Format(
                 "Nokia.Graphics.Imaging.{0}, Nokia.Graphics.Imaging, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime",
                 _filterItemBeingEdited.Name);
 
             // Use reflection to create the filter class
             var effectType = Type.GetType(type);
-            var effectTypeInfo = effectType.GetTypeInfo();
+            TypeInfo effectTypeInfo = effectType.GetTypeInfo();
             PropertyInfo propertyInfo = null;
-
+            bool effectHasProperties = false;
+            
             // Get the constructor with most params
             foreach (var property in effectTypeInfo.DeclaredProperties)
             {
                 propertyInfo = effectType.GetRuntimeProperty(property.Name);
                 var propertyValue = propertyInfo.GetValue(_filterItemBeingEdited.Filter);
                 System.Diagnostics.Debug.WriteLine("SettingsPage: ExtractProperties(): " + propertyInfo + " == " + propertyValue);
-                string name = property.PropertyType.Name.ToLower();
+                string propertyName = property.Name;
+                string propertyTypeName = property.PropertyType.Name;
+                string propertyTypeNameToLower = propertyTypeName.ToLower();
 
-                if (name != "bool" && name != "boolean")
+                if (propertyTypeNameToLower != "bool" && propertyTypeNameToLower != "boolean")
                 {
-                    OptionPanel.Children.Add(new TextBlock
+                    FilterPropertiesPanel.Children.Add(new TextBlock
                     {
-                        Text = property.Name,
-                        FontSize = 24,
-                        Margin = new Thickness(10, 10, 10, 10)
+                        Text = propertyName,
+                        FontSize = PropertyNameFontSize,
+                        Margin = PropertyItemTopMargin
                     });
                 }
 
-                switch (name)
+                switch (propertyTypeNameToLower)
                 {
                     case "boolean":
                     case "bool":
-                        var item1 = new CheckBox
+                        var boolItem = new CheckBox
                         {
-                            Name = property.Name + "CheckBox",
-                            Content = property.Name,
-                            FontSize = 24,
-                            Margin = new Thickness(10, 10, 0, 0),
+                            Name = propertyName + "CheckBox",
+                            Content = propertyName,
+                            FontSize = PropertyNameFontSize,
+                            Margin = PropertyItemTopMargin,
                             IsChecked = (bool)propertyValue
                         };
 
-                        OptionPanel.Children.Add(item1);
-                        _filterParameters.Add(property.Name, item1);
+                        FilterPropertiesPanel.Children.Add(boolItem);
+                        _filterParameters.Add(propertyName, boolItem);
                         break;
                     case "int32":
-                        var item2i = CreateTextBox(property, "TextBox", propertyValue);
-                        OptionPanel.Children.Add(item2i);
-                        _filterParameters.Add(property.Name, item2i);
+                        var intItem = CreateTextBox(property, "TextBox", propertyValue);
+                        FilterPropertiesPanel.Children.Add(intItem);
+                        _filterParameters.Add(propertyName, intItem);
                         break;
                     case "double":
-                        var item2d = CreateTextBox(property, "TextBox", propertyValue, true);
-                        OptionPanel.Children.Add(item2d);
-                        _filterParameters.Add(property.Name, item2d);
-                        break;
-                    case "blurregionshape":
-                        var item3 = new CheckBox
-                        {
-                            Name = property.Name + "CheckBox",
-                            Content = "Default: Rectangular, Checked: Elliptical",
-                            FontSize = 24,
-                            Margin = new Thickness(10, 10, 0, 0),
-                            IsChecked = ((BlurRegionShape)propertyValue) == BlurRegionShape.Elliptical
-                        };
-
-                        OptionPanel.Children.Add(item3);
-                        _filterParameters.Add(property.Name, item3);
+                        var doubleItem = CreateTextBox(property, "TextBox", propertyValue, true);
+                        FilterPropertiesPanel.Children.Add(doubleItem);
+                        _filterParameters.Add(propertyName, doubleItem);
                         break;
                     case "rect":
-                        var item4 = CreateTextBoxGroup(property, "X, Y, Width, Height", new List<string> { "X", "Y", "W", "H" }, propertyValue.ToString().Split(','), TextBoxGroupType.RectType);
-                        _filterParameters.Add(property.Name, item4);
+                        var rectItem = CreateTextBoxGroup(property, "X, Y, Width, Height", new List<string> { "X", "Y", "W", "H" }, propertyValue.ToString().Split(','), TextBoxGroupType.RectType);
+                        _filterParameters.Add(propertyName, rectItem);
                         break;
                     case "color":
                         object[] colorValues = new object[4];
@@ -196,19 +181,43 @@ namespace simple_filter_mixer
                             }
                         }
 
-                        var item5 = CreateTextBoxGroup(property, "A, R, G, B (decimal)", new List<string> { "A", "R", "G", "B" }, colorValues, TextBoxGroupType.ColorType);
-                        _filterParameters.Add(property.Name, item5);
+                        var colorItem = CreateTextBoxGroup(property, "A, R, G, B (decimal)", new List<string> { "A", "R", "G", "B" }, colorValues, TextBoxGroupType.ColorType);
+                        _filterParameters.Add(propertyName, colorItem);
                         break;
                     case "point":
-                        var item6 = CreateTextBoxGroup(property, "X, Y", new List<string> { "X", "Y" }, propertyValue.ToString().Split(','), TextBoxGroupType.PointType);
-                        _filterParameters.Add(property.Name, item6);
+                        var pointItem = CreateTextBoxGroup(property, "X, Y", new List<string> { "X", "Y" }, propertyValue.ToString().Split(','), TextBoxGroupType.PointType);
+                        _filterParameters.Add(propertyName, pointItem);
+                        break;
+                    case "blendfunction":
+                        var blendFunctionItem = CreateRadioButtonGroup(propertyTypeName, Enum.GetValues(typeof(BlendFunction)), propertyValue);
+                        FilterPropertiesPanel.Children.Add(blendFunctionItem);
+                        _filterParameters.Add(propertyName, blendFunctionItem);
+                        break;
+                    case "blurregionshape":
+                        var blurRegionShapeItem = CreateRadioButtonGroup(propertyTypeName, Enum.GetValues(typeof(BlurRegionShape)), propertyValue);
+                        FilterPropertiesPanel.Children.Add(blurRegionShapeItem);
+                        _filterParameters.Add(propertyName, blurRegionShapeItem);
                         break;
                     default:
+                        System.Diagnostics.Debug.WriteLine("SettingsPage: ExtractProperties(): Cannot handle " + propertyName);
+
+                        FilterPropertiesPanel.Children.Add(new TextBlock
+                        {
+                            Margin = PropertyInnerMargin,
+                            FontSize = PropertyValueFontSize,
+                            Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 255, 0, 0)),
+                            TextWrapping = Windows.UI.Xaml.TextWrapping.Wrap,
+                            Text = "Implementation for modifying this property missing",
+                        });
+
                         break;
-                }
+                } // switch (propertyTypeNameToLower)
+
+                effectHasProperties = true;
             }
 
-            OptionPanel.InvalidateArrange();
+            NoPropertiesTextBlock.Visibility = effectHasProperties ? Visibility.Collapsed : Visibility.Visible;
+            FilterPropertiesPanel.InvalidateArrange();
         }
 
         /// <summary>
@@ -223,7 +232,13 @@ namespace simple_filter_mixer
         /// <returns></returns>
         private List<object> CreateTextBoxGroup(PropertyInfo property, string header, List<string> names, object[] values, TextBoxGroupType type)
         {
-            OptionPanel.Children.Add(new TextBlock { Text = header, FontSize = 24, Margin = new Thickness(10, 10, 0, 0) });
+            FilterPropertiesPanel.Children.Add(
+                new TextBlock {
+                    Text = header,
+                    FontSize = PropertyValueFontSize,
+                    Margin = PropertyInnerMargin
+                });
+
             var colGrid = new Grid();
             int i = 0;
             var list = new List<object> { type };
@@ -231,7 +246,7 @@ namespace simple_filter_mixer
 
             if (!valuesOk)
             {
-                System.Diagnostics.Debug.WriteLine("SettingsPage: CreateTextBoxGroup(): Values are not OK:" + (values == null ? " null" : "\n"));
+                System.Diagnostics.Debug.WriteLine("SettingsPage: CreateTextBoxGroup(): Values are not OK:" + (values == null ? " null" : ""));
 
                 foreach (object valueObject in values)
                 {
@@ -241,7 +256,7 @@ namespace simple_filter_mixer
 
             foreach (var name in names)
             {
-                colGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
+                colGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(TextBoxWidth + TextBoxMargin) });
                 var item = CreateTextBox(property, name + "TextBox", (valuesOk ? values[i] : null));
                 Grid.SetColumn(item, i);
                 i++;
@@ -249,7 +264,7 @@ namespace simple_filter_mixer
                 list.Add(item);
             }
 
-            OptionPanel.Children.Add(colGrid);
+            FilterPropertiesPanel.Children.Add(colGrid);
 
             return list;
         }
@@ -262,7 +277,7 @@ namespace simple_filter_mixer
         /// <param name="value"></param>
         /// <param name="digits"></param>
         /// <returns></returns>
-        private static TextBox CreateTextBox(PropertyInfo property, string name, object value, bool digits = false)
+        private TextBox CreateTextBox(PropertyInfo property, string name, object value, bool digits = false)
         {
             var scope = new InputScope();
             var scopeName = new InputScopeName { NameValue = InputScopeNameValue.Number };
@@ -278,15 +293,40 @@ namespace simple_filter_mixer
             var box = new TextBox
             {
                 Name = property.Name + name,
-                Margin = new Thickness(10, 10, 0, 0),
-                FontSize = 24,
-                Width = 100,
+                Margin = PropertyInnerMargin,
+                Width = TextBoxWidth,
                 HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Center,
                 InputScope = scope,
                 Text = valueString
             };
 
             return box;
+        }
+
+        private UIElement CreateRadioButtonGroup(string groupName, Array enumValues, object selectedValue)
+        {
+            StackPanel stackPanel = new StackPanel();
+
+            foreach (var enumValue in enumValues)
+            {
+                RadioButton radioButton = new RadioButton()
+                {
+                    Margin = RadioButtonMargin,
+                    GroupName = groupName,
+                    FontSize = PropertyValueFontSize,
+                    Content = enumValue.ToString()
+                };
+
+                stackPanel.Children.Add(radioButton);
+
+                if (selectedValue != null && enumValue.ToString().Equals(selectedValue.ToString()))
+                {
+                    radioButton.IsChecked = true;
+                }
+            }
+
+            return stackPanel;
         }
 
         /// <summary>
@@ -296,17 +336,11 @@ namespace simple_filter_mixer
         {
             try
             {
-                foreach (var filterItem in FilterDefinitions.FilterItemList)
-                {
-                    if (filterItem.Name == _filterItemBeingEdited.Name)
-                    {
-                        filterItem.Parameters = new Dictionary<string, object>();
+                _filterItemBeingEdited.Parameters = new Dictionary<string, object>();
 
-                        foreach (var filterParameter in _filterParameters)
-                        {
-                            GetValue(filterParameter, filterItem);
-                        }
-                    }
+                foreach (var filterParameter in _filterParameters)
+                {
+                    GetValue(filterParameter, _filterItemBeingEdited);
                 }
             }
             catch (Exception e)
@@ -329,10 +363,10 @@ namespace simple_filter_mixer
                     filterItem.Parameters.Add(filterParameter.Key, ((CheckBox) filterParameter.Value).IsChecked);
                     break;
                 case "list`1":
-                    int listType = Convert.ToInt32(((List<object>) filterParameter.Value)[0]);
+                    TextBoxGroupType listType = (TextBoxGroupType)((List<object>)filterParameter.Value)[0];
 
                     // Rect list
-                    if (listType == 1)
+                    if (listType == TextBoxGroupType.RectType)
                     {
                         int x = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[1]).Text);
                         int y = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[2]).Text);
@@ -343,7 +377,7 @@ namespace simple_filter_mixer
                     }
 
                     // Color list
-                    if (listType == 2)
+                    if (listType == TextBoxGroupType.ColorType)
                     {
                         byte a = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[1]).Text));
                         byte r = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[2]).Text));

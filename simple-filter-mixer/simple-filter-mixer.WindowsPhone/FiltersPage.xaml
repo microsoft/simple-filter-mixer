@@ -37,7 +37,7 @@
             SelectionChanged="OnGridViewSelectionChanged">
             <GridView.ItemTemplate>
                 <DataTemplate>
-                    <local:FilterGridItemControl DoubleTapped="OnFilterItemDoubleTapped" Holding="OnFilterItemLongPressed" />
+                    <local:FilterGridItemControl Holding="OnFilterItemLongPressed" />
                 </DataTemplate>
             </GridView.ItemTemplate>
         </GridView>
