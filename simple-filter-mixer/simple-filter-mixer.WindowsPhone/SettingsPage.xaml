@@ -51,4 +51,10 @@
             </StackPanel>
         </ScrollViewer>
     </Grid>
+
+    <Page.BottomAppBar>
+        <CommandBar>
+            <AppBarButton x:Uid="Apply" x:Name="ApplyButton" Icon="Accept" Label="apply" IsEnabled="False" Click="OnApplyButtonClicked" />
+        </CommandBar>
+    </Page.BottomAppBar>
 </Page>

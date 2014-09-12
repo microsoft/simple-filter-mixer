@@ -53,5 +53,10 @@
                 />
         </Grid>
     </Grid>
-    
+
+    <Page.BottomAppBar>
+        <CommandBar>
+            <AppBarButton x:Uid="Apply" x:Name="ApplyButton" Icon="Accept" Label="" IsEnabled="False" Click="OnApplyButtonClicked" />
+        </CommandBar>
+    </Page.BottomAppBar>
 </Page>

@@ -16,6 +16,8 @@ namespace simple_filter_mixer
 {
     public class Imaging
     {
+        private const string DebugTag = "Imaging: ";
+
         public EventHandler<bool> IsRenderingChanged;
         private bool _rendering; // Do not start rendering if we haven't finished previous rendering yet
 
@@ -56,7 +58,8 @@ namespace simple_filter_mixer
                 }
                 else if (selectedFilterItem.Parameters != null)
                 {
-                    SetFilterParameters(selectedFilterItem.Filter, selectedFilterItem.Parameters);
+                    string temp = "";
+                    SetFilterParameters(selectedFilterItem.Filter, selectedFilterItem.Parameters, out temp);
                 }
 
                 filters.Add(selectedFilterItem.Filter);
@@ -85,7 +88,7 @@ namespace simple_filter_mixer
         {
             if (filterClassName == null || filterClassName.Length == 0)
             {
-                Debug.WriteLine("Imaging: CreateFilter(): Invalid class name!");
+                Debug.WriteLine(DebugTag + "CreateFilter(): Invalid class name!");
                 return null;
             }
 
@@ -99,7 +102,7 @@ namespace simple_filter_mixer
 
             if (filterType == null)
             {
-                Debug.WriteLine("Imaging: CreateFilter(): Failed to get the filter type!");
+                Debug.WriteLine(DebugTag + "CreateFilter(): Failed to get the filter type!");
                 return null;
             }
 
@@ -108,7 +111,8 @@ namespace simple_filter_mixer
             // Apply changed parameter values if any
             if (filterParameters != null)
             {
-                SetFilterParameters(filter, filterParameters);
+                string temp = "";
+                SetFilterParameters(filter, filterParameters, out temp);
             }
 
             return filter;
@@ -118,9 +122,11 @@ namespace simple_filter_mixer
         /// For convenience.
         /// </summary>
         /// <param name="filterItem"></param>
-        public static void SetFilterParameters(FilterItem filterItem)
+        /// <param name="errorMessage"></param>
+        /// <returns></returns>
+        public static bool SetFilterParameters(FilterItem filterItem, out string errorMessage)
         {
-            SetFilterParameters(filterItem.Filter, filterItem.Parameters);
+            return SetFilterParameters(filterItem.Filter, filterItem.Parameters, out errorMessage);
         }
 
         /// <summary>
@@ -128,14 +134,22 @@ namespace simple_filter_mixer
         /// </summary>
         /// <param name="filter"></param>
         /// <param name="filterParameters"></param>
-        public static void SetFilterParameters(IFilter filter, Dictionary<string, object> filterParameters)
+        /// <param name="errorMessage"></param>
+        /// <returns>True if successful, false otherwise.</returns>
+        public static bool SetFilterParameters(IFilter filter,
+                                               Dictionary<string, object> filterParameters,
+                                               out string errorMessage)
         {
+            errorMessage = "";
+
             if (filter == null || filterParameters == null || filterParameters.Count == 0)
             {
-                Debug.WriteLine("SetFilterParameters(): No filter or parameters given!");
-                return;
+                Debug.WriteLine(DebugTag + "SetFilterParameters(): No filter or parameters given!");
+                errorMessage = "Invalid arguments: No filter or parameters given!";
+                return false;
             }
 
+            bool success = true;
             PropertyInfo propertyInfo = null;
             var filterType = filter.GetType();
             string propertyTypeName = "";
@@ -151,7 +165,7 @@ namespace simple_filter_mixer
                         continue;
                     }
 
-                    Debug.WriteLine("SetFilterParameters(): Setting property: " + parameter.Key + " (" + propertyInfo.PropertyType + ") == " + parameter.Value);
+                    Debug.WriteLine(DebugTag + "SetFilterParameters(): Setting property: " + parameter.Key + " (" + propertyInfo.PropertyType + ") == " + parameter.Value);
                     propertyTypeName = propertyInfo.PropertyType.ToString().ToLower();
 
                     switch (propertyTypeName)
@@ -178,24 +192,21 @@ namespace simple_filter_mixer
                             propertyInfo.SetValue(filter, (Windows.UI.Color)parameter.Value);
                             break;
                         default:
-                            Debug.WriteLine("SetFilterParameters(): Type " + propertyTypeName + " not handled!");
+                            Debug.WriteLine(DebugTag + "SetFilterParameters(): Type " + propertyTypeName + " not handled!");
+                            success = false;
+                            errorMessage = "No implementation for handling type " + propertyTypeName + ".";
                             break;
                     }
                 }
             }
             catch (Exception e)
             {
-                if (propertyInfo != null)
-                {
-                    Debug.WriteLine("SetFilterParameters(): Setting property value: "
-                        + propertyInfo.Name + " (" + propertyTypeName + ") failed with message: " +
-                        e.Message);
-                }
-                else
-                {
-                    Debug.WriteLine("SetFilterParameters(): Exception: " + e.Message);
-                }
+                success = false;
+                errorMessage = "Setting property value: " + propertyInfo.Name
+                    + " (" + propertyTypeName + ") failed with message: " + e.Message;
             }
+
+            return success;
         }
 
         /// <summary>

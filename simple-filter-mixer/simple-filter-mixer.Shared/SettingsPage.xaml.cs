@@ -10,6 +10,7 @@ using simple_filter_mixer.Common;
 using simple_filter_mixer.DataModel;
 using System.Reflection;
 using Nokia.Graphics.Imaging;
+using Windows.UI.Popups;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkID=390556
 
@@ -84,15 +85,31 @@ namespace simple_filter_mixer
                     ExtractProperties();
                 }
             }
-
-            SettingsChanged = true; // TODO: Check if the settings were actually changed
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
-            GetValues();
-            Imaging.SetFilterParameters(_filterItemBeingEdited);
+        }
+
+        private async void OnApplyButtonClicked(object sender, RoutedEventArgs e)
+        {
+            string errorMessage = "";
+
+            if (!GetValues(out errorMessage))
+            {
+                MessageDialog errorMessageDialog = new MessageDialog(errorMessage, "Failed to retrieve a property");
+                await errorMessageDialog.ShowAsync();
+            }
+
+            if (!Imaging.SetFilterParameters(_filterItemBeingEdited, out errorMessage))
+            {
+                MessageDialog errorMessageDialog = new MessageDialog(errorMessage, "Failed to apply a property");
+                await errorMessageDialog.ShowAsync();
+            }
+
+            SettingsChanged = true; 
+            NavigationHelper.GoBack();
         }
 
         /// <summary>
@@ -217,6 +234,7 @@ namespace simple_filter_mixer
             }
 
             NoPropertiesTextBlock.Visibility = effectHasProperties ? Visibility.Collapsed : Visibility.Visible;
+            ApplyButton.IsEnabled = effectHasProperties ? true : false;
             FilterPropertiesPanel.InvalidateArrange();
         }
 
@@ -332,26 +350,41 @@ namespace simple_filter_mixer
         /// <summary>
         /// Get chosen values from the dynamically created controls
         /// </summary>
-        private void GetValues()
+        private bool GetValues(out string errorMessage)
         {
+            bool success = true;
+            errorMessage = "";
+
             try
             {
                 _filterItemBeingEdited.Parameters = new Dictionary<string, object>();
+                string temp = "";
 
                 foreach (var filterParameter in _filterParameters)
                 {
-                    GetValue(filterParameter, _filterItemBeingEdited);
+                    if (!GetValue(filterParameter, _filterItemBeingEdited, out temp))
+                    {
+                        success = false;
+                        errorMessage = temp;
+                    }
                 }
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine("SettingsPage: GetValues(): Invalid parameter values for the filter entered: " + e.ToString());
+                System.Diagnostics.Debug.WriteLine("SettingsPage: GetValues(): Error: " + e.ToString());
+                success = false;
+                errorMessage = e.ToString();
             }
 
+            return success;
         }
 
-        private static void GetValue(KeyValuePair<string, object> filterParameter, FilterItem filterItem)
+        private static bool GetValue(KeyValuePair<string, object> filterParameter,
+                                     FilterItem filterItem,
+                                     out string errorMessage)
         {
+            bool success = true;
+            errorMessage = "";
             Type valueType = filterParameter.Value.GetType();
 
             switch (valueType.Name.ToLower())
@@ -390,8 +423,13 @@ namespace simple_filter_mixer
                     break;
                 default:
                     System.Diagnostics.Debug.WriteLine("SettingsPage: GetValue(): Type " + valueType.Name + " not handled!");
+                    success = false;
+                    errorMessage = "No implementation for handling property " + filterParameter.Key
+                        + " (UI control is of type " + valueType.Name + ").";
                     break;
             }
+
+            return success;
         }
     }
 }
