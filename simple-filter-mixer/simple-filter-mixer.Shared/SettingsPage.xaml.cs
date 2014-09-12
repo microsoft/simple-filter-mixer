@@ -38,8 +38,7 @@ namespace simple_filter_mixer
         {
             RectType,
             ColorType,
-            PointType,
-            EnumType
+            PointType
         };
 
         private NavigationHelper _navigationHelper;
