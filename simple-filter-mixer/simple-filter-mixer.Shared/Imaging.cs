@@ -16,6 +16,8 @@ namespace simple_filter_mixer
 {
     public class Imaging
     {
+        public static readonly string ImagingTypeStringStub = "Nokia.Graphics.Imaging.{0}, Nokia.Graphics.Imaging, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime";
+        public static readonly string ImagingLibraryNamespace = "Nokia.Graphics.Imaging";
         private const string DebugTag = "Imaging: ";
 
         public EventHandler<bool> IsRenderingChanged;
@@ -93,9 +95,7 @@ namespace simple_filter_mixer
             }
 
             // Format the fully qualified name of the class
-            var type = string.Format(
-                "Nokia.Graphics.Imaging.{0}, Nokia.Graphics.Imaging, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime",
-                filterClassName);
+            var type = string.Format(ImagingTypeStringStub, filterClassName);
 
             // Use reflection to create the filter class
             var filterType = Type.GetType(type);
@@ -153,6 +153,7 @@ namespace simple_filter_mixer
             PropertyInfo propertyInfo = null;
             var filterType = filter.GetType();
             string propertyTypeName = "";
+            string propertyTypeNameToLower = "";
 
             try
             {
@@ -165,10 +166,11 @@ namespace simple_filter_mixer
                         continue;
                     }
 
-                    Debug.WriteLine(DebugTag + "SetFilterParameters(): Setting property: " + parameter.Key + " (" + propertyInfo.PropertyType + ") == " + parameter.Value);
-                    propertyTypeName = propertyInfo.PropertyType.ToString().ToLower();
+                    propertyTypeName = propertyInfo.PropertyType.ToString();
+                    Debug.WriteLine(DebugTag + "SetFilterParameters(): Setting property: " + parameter.Key + " (" + propertyTypeName + ") == " + parameter.Value);
+                    propertyTypeNameToLower = propertyTypeName.ToLower();
 
-                    switch (propertyTypeName)
+                    switch (propertyTypeNameToLower)
                     {
                         case "system.double":
                             propertyInfo.SetValue(filter, Convert.ToDouble(parameter.Value));
@@ -182,9 +184,6 @@ namespace simple_filter_mixer
                         case "system.int32":
                             propertyInfo.SetValue(filter, Convert.ToInt32(parameter.Value));
                             break;
-                        case "nokia.graphics.imaging.blurregionshape":
-                            propertyInfo.SetValue(filter, Convert.ToInt32(parameter.Value));
-                            break;
                         case "windows.foundation.rect":
                             propertyInfo.SetValue(filter, (Windows.Foundation.Rect)parameter.Value);
                             break;
@@ -192,9 +191,26 @@ namespace simple_filter_mixer
                             propertyInfo.SetValue(filter, (Windows.UI.Color)parameter.Value);
                             break;
                         default:
-                            Debug.WriteLine(DebugTag + "SetFilterParameters(): Type " + propertyTypeName + " not handled!");
-                            success = false;
-                            errorMessage = "No implementation for handling type " + propertyTypeName + ".";
+                            if (propertyTypeName.StartsWith(ImagingLibraryNamespace))
+                            {
+                                // The value is probably Imaging SDK specific enumeration
+                                try
+                                {
+                                    propertyInfo.SetValue(filter, Convert.ToInt32(parameter.Value));
+                                }
+                                catch (Exception e)
+                                {
+                                    success = false;
+                                    errorMessage = "Failed to set value " + parameter.Value
+                                        + " for type " + propertyTypeName + ": " + e.ToString();
+                                }
+                            }
+                            else
+                            {
+                                success = false;
+                                errorMessage = "No implementation for handling type " + propertyTypeName + ".";
+                            }
+                            
                             break;
                     }
                 }
@@ -204,6 +220,11 @@ namespace simple_filter_mixer
                 success = false;
                 errorMessage = "Setting property value: " + propertyInfo.Name
                     + " (" + propertyTypeName + ") failed with message: " + e.Message;
+            }
+
+            if (!success)
+            {
+                Debug.WriteLine(DebugTag + "SetFilterParameters(): " + errorMessage);
             }
 
             return success;

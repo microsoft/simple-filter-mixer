@@ -6,11 +6,14 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
+using System.Diagnostics;
+using System.Reflection;
+using Windows.UI.Popups;
+
+using Nokia.Graphics.Imaging;
+
 using simple_filter_mixer.Common;
 using simple_filter_mixer.DataModel;
-using System.Reflection;
-using Nokia.Graphics.Imaging;
-using Windows.UI.Popups;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkID=390556
 
@@ -21,6 +24,7 @@ namespace simple_filter_mixer
     /// </summary>
     public sealed partial class SettingsPage : Page
     {
+        private const string DebugTag = "SettingsPage: ";
         private readonly Thickness PropertyItemTopMargin = new Thickness(0, 24, 0, 0);
         private readonly Thickness PropertyInnerMargin = new Thickness(6, 6, 0, 0);
         private readonly Thickness RadioButtonMargin = new Thickness(6, 0, 0, 0);
@@ -117,12 +121,10 @@ namespace simple_filter_mixer
         /// </summary>
         private void ExtractProperties()
         {
-            var type = string.Format(
-                "Nokia.Graphics.Imaging.{0}, Nokia.Graphics.Imaging, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime",
-                _filterItemBeingEdited.Name);
+            string typeString = string.Format(Imaging.ImagingTypeStringStub, _filterItemBeingEdited.Name);
 
-            // Use reflection to create the filter class
-            var effectType = Type.GetType(type);
+            // Use reflection to get the details of the filter class
+            var effectType = Type.GetType(typeString);
             TypeInfo effectTypeInfo = effectType.GetTypeInfo();
             PropertyInfo propertyInfo = null;
             bool effectHasProperties = false;
@@ -132,7 +134,7 @@ namespace simple_filter_mixer
             {
                 propertyInfo = effectType.GetRuntimeProperty(property.Name);
                 var propertyValue = propertyInfo.GetValue(_filterItemBeingEdited.Filter);
-                System.Diagnostics.Debug.WriteLine("SettingsPage: ExtractProperties(): " + propertyInfo + " == " + propertyValue);
+                Debug.WriteLine(DebugTag + "ExtractProperties(): " + propertyInfo + " == " + propertyValue);
                 string propertyName = property.Name;
                 string propertyTypeName = property.PropertyType.Name;
                 string propertyTypeNameToLower = propertyTypeName.ToLower();
@@ -205,27 +207,40 @@ namespace simple_filter_mixer
                         var pointItem = CreateTextBoxGroup(property, "X, Y", new List<string> { "X", "Y" }, propertyValue.ToString().Split(','), TextBoxGroupType.PointType);
                         _filterParameters.Add(propertyName, pointItem);
                         break;
-                    case "blendfunction":
-                        var blendFunctionItem = CreateRadioButtonGroup(propertyTypeName, Enum.GetValues(typeof(BlendFunction)), propertyValue);
-                        FilterPropertiesPanel.Children.Add(blendFunctionItem);
-                        _filterParameters.Add(propertyName, blendFunctionItem);
-                        break;
-                    case "blurregionshape":
-                        var blurRegionShapeItem = CreateRadioButtonGroup(propertyTypeName, Enum.GetValues(typeof(BlurRegionShape)), propertyValue);
-                        FilterPropertiesPanel.Children.Add(blurRegionShapeItem);
-                        _filterParameters.Add(propertyName, blurRegionShapeItem);
-                        break;
                     default:
-                        System.Diagnostics.Debug.WriteLine("SettingsPage: ExtractProperties(): Cannot handle " + propertyName);
+                        bool handled = false;
+                        string errorMessage = "ExtractProperties(): Cannot handle " + propertyName;
 
-                        FilterPropertiesPanel.Children.Add(new TextBlock
+                        if (propertyInfo.ToString().StartsWith(Imaging.ImagingLibraryNamespace))
                         {
-                            Margin = PropertyInnerMargin,
-                            FontSize = PropertyValueFontSize,
-                            Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 255, 0, 0)),
-                            TextWrapping = Windows.UI.Xaml.TextWrapping.Wrap,
-                            Text = "Implementation for modifying this property missing",
-                        });
+                            try
+                            {
+                                typeString = string.Format(Imaging.ImagingTypeStringStub, propertyName);
+                                Type propertyType = Type.GetType(typeString);
+                                var enumItem = CreateRadioButtonGroup(propertyTypeName, Enum.GetValues(propertyType), propertyValue);
+                                FilterPropertiesPanel.Children.Add(enumItem);
+                                _filterParameters.Add(propertyName, enumItem);
+                                handled = true;
+                            }
+                            catch (Exception e)
+                            {
+                                errorMessage += ": " + e.ToString();
+                            }
+                        }
+
+                        if (!handled)
+                        {
+                            Debug.WriteLine(DebugTag + "ExtractProperties(): " + errorMessage);
+
+                            FilterPropertiesPanel.Children.Add(new TextBlock
+                            {
+                                Margin = PropertyInnerMargin,
+                                FontSize = PropertyValueFontSize,
+                                Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 255, 0, 0)),
+                                TextWrapping = Windows.UI.Xaml.TextWrapping.Wrap,
+                                Text = "Implementation for modifying this property missing",
+                            });
+                        }
 
                         break;
                 } // switch (propertyTypeNameToLower)
@@ -264,11 +279,11 @@ namespace simple_filter_mixer
 
             if (!valuesOk)
             {
-                System.Diagnostics.Debug.WriteLine("SettingsPage: CreateTextBoxGroup(): Values are not OK:" + (values == null ? " null" : ""));
+                Debug.WriteLine(DebugTag + "CreateTextBoxGroup(): Values are not OK:" + (values == null ? " null" : ""));
 
                 foreach (object valueObject in values)
                 {
-                    System.Diagnostics.Debug.WriteLine("\t" + valueObject);
+                    Debug.WriteLine("\t" + valueObject);
                 }
             }
 
@@ -371,7 +386,7 @@ namespace simple_filter_mixer
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine("SettingsPage: GetValues(): Error: " + e.ToString());
+                Debug.WriteLine(DebugTag + "GetValues(): Error: " + e.ToString());
                 success = false;
                 errorMessage = e.ToString();
             }
@@ -398,7 +413,6 @@ namespace simple_filter_mixer
                 case "list`1":
                     TextBoxGroupType listType = (TextBoxGroupType)((List<object>)filterParameter.Value)[0];
 
-                    // Rect list
                     if (listType == TextBoxGroupType.RectType)
                     {
                         int x = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[1]).Text);
@@ -408,25 +422,62 @@ namespace simple_filter_mixer
                         var rect = new Rect(x, y, w, h);
                         filterItem.Parameters.Add(filterParameter.Key, rect);
                     }
-
-                    // Color list
-                    if (listType == TextBoxGroupType.ColorType)
+                    else if (listType == TextBoxGroupType.ColorType)
                     {
                         byte a = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[1]).Text));
                         byte r = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[2]).Text));
                         byte g = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[3]).Text));
                         byte b = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[4]).Text));
-                        var col = Color.FromArgb(a, r, g, b);
-
-                        filterItem.Parameters.Add(filterParameter.Key, col);
+                        var color = Color.FromArgb(a, r, g, b);
+                        filterItem.Parameters.Add(filterParameter.Key, color);
                     }
+                    else
+                    {
+                        success = false;
+                    }
+
+                    break;
+                case "stackpanel": // Radio buttons for enumeration
+                    StackPanel container = (StackPanel)filterParameter.Value;
+
+                    foreach (var child in container.Children)
+                    {
+                        if (child is RadioButton)
+                        {
+                            RadioButton radioButton = (RadioButton)child;
+
+                            if ((bool)radioButton.IsChecked)
+                            {
+                                string typeString = string.Format(Imaging.ImagingTypeStringStub, filterParameter.Key);
+                                Type type = Type.GetType(typeString);
+                                Array enumValueArray = Enum.GetValues(type);
+
+                                foreach (var enumValue in enumValueArray)
+                                {
+                                    if (enumValue.ToString().Equals(radioButton.Content))
+                                    {
+                                        filterItem.Parameters.Add(filterParameter.Key, enumValue);
+                                        success = true;
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+
                     break;
                 default:
-                    System.Diagnostics.Debug.WriteLine("SettingsPage: GetValue(): Type " + valueType.Name + " not handled!");
                     success = false;
-                    errorMessage = "No implementation for handling property " + filterParameter.Key
-                        + " (UI control is of type " + valueType.Name + ").";
                     break;
+            }
+
+            if (!success)
+            {
+                errorMessage = "No implementation for handling property " + filterParameter.Key
+                    + " (UI control is of type " + valueType.Name + ").";
+                Debug.WriteLine(DebugTag + "GetValue(): " + errorMessage);
             }
 
             return success;
