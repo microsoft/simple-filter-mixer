@@ -29,6 +29,8 @@ namespace simple_filter_mixer
         private readonly Thickness PropertyInnerMargin = new Thickness(6, 6, 0, 0);
         private readonly Thickness RadioButtonMargin = new Thickness(6, 0, 0, 0);
         private readonly GridLength GridItemWidth = new GridLength(110);
+        private const int InvalidValue = -1;
+        private readonly object[] EmptyRect = new object[4] { InvalidValue, InvalidValue, InvalidValue, InvalidValue };
         private const int PropertyNameFontSize = 22;
         private const int PropertyValueFontSize = 18;
         private const int TextBoxMargin = 12;
@@ -131,14 +133,16 @@ namespace simple_filter_mixer
             // Get the constructor with most params
             foreach (var property in effectTypeInfo.DeclaredProperties)
             {
-                propertyInfo = effectType.GetRuntimeProperty(property.Name);
-                var propertyValue = propertyInfo.GetValue(_filterItemBeingEdited.Filter);
-                Debug.WriteLine(DebugTag + "ExtractProperties(): " + propertyInfo + " == " + propertyValue);
                 string propertyName = property.Name;
-                string propertyTypeName = property.PropertyType.Name;
-                string propertyTypeNameToLower = propertyTypeName.ToLower();
+                propertyInfo = effectType.GetRuntimeProperty(propertyName);
+                var propertyValue = propertyInfo.GetValue(_filterItemBeingEdited.Filter);
 
-                if (propertyTypeNameToLower != "bool" && propertyTypeNameToLower != "boolean")
+                string[] temp = propertyInfo.PropertyType.ToString().Split('.');
+                string propertyTypeAsString = (string)temp.GetValue(temp.Length - 1);
+
+                Debug.WriteLine(DebugTag + "ExtractProperties(): " + propertyInfo + " == " + propertyValue);
+
+                if (!propertyTypeAsString.ToLower().StartsWith("bool"))
                 {
                     FilterPropertiesPanel.Children.Add(new TextBlock
                     {
@@ -148,7 +152,7 @@ namespace simple_filter_mixer
                     });
                 }
 
-                switch (propertyTypeNameToLower)
+                switch (propertyTypeAsString.ToLower())
                 {
                     case "boolean":
                     case "bool":
@@ -175,48 +179,62 @@ namespace simple_filter_mixer
                         _filterParameters.Add(propertyName, doubleItem);
                         break;
                     case "rect":
-                        var rectItem = CreateTextBoxGroup(property, "X, Y, Width, Height", new List<string> { "X", "Y", "W", "H" }, propertyValue.ToString().Split(','), TextBoxGroupType.RectType);
+                        object[] values = null;
+
+                        if ((Rect)propertyValue == Rect.Empty)
+                        {
+                            values = EmptyRect;
+                        }
+                        else
+                        {
+                            values = propertyValue.ToString().Split(',');
+                        }
+
+                        var rectItem = CreateTextBoxGroup(property, "X, Y, Width, Height", new List<string> { "X", "Y", "W", "H" }, values, TextBoxGroupType.RectType);
                         _filterParameters.Add(propertyName, rectItem);
                         break;
                     case "color":
-                        object[] colorValues = new object[4];
-                        string colorString = propertyValue.ToString().Remove(0, 1); // Remove '#'
-
-                        if (colorString.Length == 6 || colorString.Length == 8)
-                        {
-                            int objectIndex = 0;
-
-                            if (colorString.Length < 8)
-                            {
-                                colorValues[0] = 255;
-                                objectIndex = 1;
-                            }
-
-                            for (int i = 0; i < colorString.Length; i += 2)
-                            {
-                                colorValues[objectIndex] = int.Parse(colorString.Substring(i, 2), System.Globalization.NumberStyles.HexNumber);
-                                objectIndex++;
-                            }
-                        }
-
-                        var colorItem = CreateTextBoxGroup(property, "A, R, G, B (decimal)", new List<string> { "A", "R", "G", "B" }, colorValues, TextBoxGroupType.ColorType);
+                        object[] colorArray = ColorToARGBArray((Color)propertyValue);
+                        var colorItem = CreateTextBoxGroup(property, "A, R, G, B (decimal)", new List<string> { "A", "R", "G", "B" }, colorArray, TextBoxGroupType.ColorType);
                         _filterParameters.Add(propertyName, colorItem);
                         break;
                     case "point":
                         var pointItem = CreateTextBoxGroup(property, "X, Y", new List<string> { "X", "Y" }, propertyValue.ToString().Split(','), TextBoxGroupType.PointType);
                         _filterParameters.Add(propertyName, pointItem);
                         break;
+                    case "iimageprovider":
+                        FilterPropertiesPanel.Children.Add(new TextBlock
+                        {
+                            Margin = PropertyInnerMargin,
+                            FontSize = PropertyValueFontSize,
+                            FontStyle = Windows.UI.Text.FontStyle.Italic,
+                            TextWrapping = Windows.UI.Xaml.TextWrapping.Wrap,
+                            Text = "No control implemented for selecting image provider"
+                        });
+
+                        break;
+                    case "curve":
+                        FilterPropertiesPanel.Children.Add(new TextBlock
+                        {
+                            Margin = PropertyInnerMargin,
+                            FontSize = PropertyValueFontSize,
+                            FontStyle = Windows.UI.Text.FontStyle.Italic,
+                            TextWrapping = Windows.UI.Xaml.TextWrapping.Wrap,
+                            Text = "No control implemented for modifying curve properties"
+                        });
+
+                        break;
                     default:
                         bool handled = false;
-                        string errorMessage = "ExtractProperties(): Cannot handle " + propertyName;
+                        string errorMessage = "ExtractProperties(): Cannot handle " + propertyInfo;
 
                         if (propertyInfo.ToString().StartsWith(Imaging.ImagingLibraryNamespace))
                         {
                             try
                             {
-                                typeString = string.Format(Imaging.ImagingTypeStringStub, propertyName);
+                                typeString = string.Format(Imaging.ImagingTypeStringStub, propertyTypeAsString);
                                 Type propertyType = Type.GetType(typeString);
-                                var enumItem = CreateRadioButtonGroup(propertyTypeName, Enum.GetValues(propertyType), propertyValue);
+                                var enumItem = CreateRadioButtonGroup(property.PropertyType.Name, Enum.GetValues(propertyType), propertyValue);
                                 FilterPropertiesPanel.Children.Add(enumItem);
                                 _filterParameters.Add(propertyName, enumItem);
                                 handled = true;
@@ -237,7 +255,7 @@ namespace simple_filter_mixer
                                 FontSize = PropertyValueFontSize,
                                 Foreground = new Windows.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 255, 0, 0)),
                                 TextWrapping = Windows.UI.Xaml.TextWrapping.Wrap,
-                                Text = "Implementation for modifying this property missing",
+                                Text = "Implementation for modifying this property missing"
                             });
                         }
 
@@ -248,7 +266,7 @@ namespace simple_filter_mixer
             }
 
             NoPropertiesTextBlock.Visibility = effectHasProperties ? Visibility.Collapsed : Visibility.Visible;
-            ApplyButton.IsEnabled = effectHasProperties ? true : false;
+            ApplyButton.IsEnabled = (_filterParameters.Count > 0) ? true : false;
             FilterPropertiesPanel.InvalidateArrange();
         }
 
@@ -376,6 +394,8 @@ namespace simple_filter_mixer
 
                 foreach (var filterParameter in _filterParameters)
                 {
+                    errorMessage = "Failed to retrieve value for property " + filterParameter.Key;
+
                     if (!GetValue(filterParameter, _filterItemBeingEdited, out temp))
                     {
                         success = false;
@@ -387,15 +407,15 @@ namespace simple_filter_mixer
             {
                 Debug.WriteLine(DebugTag + "GetValues(): Error: " + e.ToString());
                 success = false;
-                errorMessage = e.ToString();
+                errorMessage += ": " + e.Message;
             }
 
             return success;
         }
 
-        private static bool GetValue(KeyValuePair<string, object> filterParameter,
-                                     FilterItem filterItem,
-                                     out string errorMessage)
+        private bool GetValue(KeyValuePair<string, object> filterParameter,
+                              FilterItem filterItem,
+                              out string errorMessage)
         {
             bool success = true;
             errorMessage = "";
@@ -414,21 +434,36 @@ namespace simple_filter_mixer
 
                     if (listType == TextBoxGroupType.RectType)
                     {
-                        int x = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[1]).Text);
-                        int y = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[2]).Text);
-                        int w = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[3]).Text);
-                        int h = Convert.ToInt32(((TextBox) ((List<object>) filterParameter.Value)[4]).Text);
-                        var rect = new Rect(x, y, w, h);
-                        filterItem.Parameters.Add(filterParameter.Key, rect);
+                        int x = Convert.ToInt32(((TextBox)((List<object>)filterParameter.Value)[1]).Text);
+                        int y = Convert.ToInt32(((TextBox)((List<object>)filterParameter.Value)[2]).Text);
+                        int w = Convert.ToInt32(((TextBox)((List<object>)filterParameter.Value)[3]).Text);
+                        int h = Convert.ToInt32(((TextBox)((List<object>)filterParameter.Value)[4]).Text);
+
+                        if (x == InvalidValue && y == InvalidValue && w == InvalidValue && h == InvalidValue)
+                        {
+                            filterItem.Parameters.Add(filterParameter.Key, Rect.Empty);
+                        }
+                        else
+                        {
+                            var rect = new Rect(x, y, w, h);
+                            filterItem.Parameters.Add(filterParameter.Key, rect);
+                        }
                     }
                     else if (listType == TextBoxGroupType.ColorType)
                     {
-                        byte a = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[1]).Text));
-                        byte r = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[2]).Text));
-                        byte g = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[3]).Text));
-                        byte b = Convert.ToByte((((TextBox) ((List<object>) filterParameter.Value)[4]).Text));
+                        byte a = Convert.ToByte(((TextBox)((List<object>)filterParameter.Value)[1]).Text);
+                        byte r = Convert.ToByte(((TextBox)((List<object>)filterParameter.Value)[2]).Text);
+                        byte g = Convert.ToByte(((TextBox)((List<object>)filterParameter.Value)[3]).Text);
+                        byte b = Convert.ToByte(((TextBox)((List<object>)filterParameter.Value)[4]).Text);
                         var color = Color.FromArgb(a, r, g, b);
                         filterItem.Parameters.Add(filterParameter.Key, color);
+                    }
+                    else if (listType == TextBoxGroupType.PointType)
+                    {
+                        double x = Convert.ToDouble(((TextBox)((List<object>)filterParameter.Value)[1]).Text);
+                        double y = Convert.ToDouble(((TextBox)((List<object>)filterParameter.Value)[2]).Text);
+                        var point = new Point(x, y);
+                        filterItem.Parameters.Add(filterParameter.Key, point);
                     }
                     else
                     {
@@ -447,7 +482,7 @@ namespace simple_filter_mixer
 
                             if ((bool)radioButton.IsChecked)
                             {
-                                string typeString = string.Format(Imaging.ImagingTypeStringStub, filterParameter.Key);
+                                string typeString = string.Format(Imaging.ImagingTypeStringStub, TypeOfImagingSDKEnumProperty(filterParameter.Key));
                                 Type type = Type.GetType(typeString);
                                 Array enumValueArray = Enum.GetValues(type);
 
@@ -480,6 +515,60 @@ namespace simple_filter_mixer
             }
 
             return success;
+        }
+
+        /// <summary>
+        /// Creates a new object array with 4 integer values matching the
+        /// value of the given Color instance.
+        /// </summary>
+        /// <param name="color">A color instance.</param>
+        /// <returns>An ARGB array with values of the given color instance.</returns>
+        private object[] ColorToARGBArray(Color color)
+        {
+            object[] colorValues = new object[4];
+            string colorString = color.ToString().Remove(0, 1); // Remove '#'
+
+            if (colorString.Length == 6 || colorString.Length == 8)
+            {
+                int objectIndex = 0;
+
+                if (colorString.Length < 8)
+                {
+                    colorValues[0] = 255;
+                    objectIndex = 1;
+                }
+
+                for (int i = 0; i < colorString.Length; i += 2)
+                {
+                    colorValues[objectIndex] = int.Parse(colorString.Substring(i, 2), System.Globalization.NumberStyles.HexNumber);
+                    objectIndex++;
+                }
+            }
+
+            return colorValues;
+        }
+
+        /// <summary>
+        /// Resolves the correct type name for the given Imaging SDK
+        /// enumeration property, e.g. type of "TargetOutputOption" is
+        /// OutputOption. (Nokia.Graphics.Imaging.OutputOption).
+        /// 
+        /// Note: This method only works for enums!
+        /// </summary>
+        /// <param name="propertyName">The property name (not type name).</param>
+        /// <returns>The type name matching the given property name.</returns>
+        private string TypeOfImagingSDKEnumProperty(string propertyName)
+        {
+
+            switch (propertyName)
+            {
+                case "TargetOutputOption":
+                    return "OutputOption";
+                case "Level":
+                    return "NoiseLevel";
+            }
+
+            return propertyName;
         }
     }
 }

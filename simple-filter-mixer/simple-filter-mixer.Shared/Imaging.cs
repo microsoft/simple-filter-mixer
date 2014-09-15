@@ -190,6 +190,9 @@ namespace simple_filter_mixer
                         case "windows.ui.color":
                             propertyInfo.SetValue(filter, (Windows.UI.Color)parameter.Value);
                             break;
+                        case "windows.foundation.point":
+                            propertyInfo.SetValue(filter, (Windows.Foundation.Point)parameter.Value);
+                            break;
                         default:
                             if (propertyTypeName.StartsWith(ImagingLibraryNamespace))
                             {
