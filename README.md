@@ -1,17 +1,18 @@
 Simple Filter Mixer
 ===================
 
-Simple Filter Mixer is an example application for Windows Phone demonstrating the use of Nokia Imaging SDK APIs, combining multiple filters together and demonstrating each of the available filter in the SDK. This sample also demonstrates on-demand creation of the filters using reflection.
+Simple Filter Mixer is an example application for Windows Phone demonstrating
+the use of Imaging SDK APIs, combining multiple filters together and
+demonstrating each of the available filter in the SDK. This sample also
+demonstrates on-demand creation of the filters using reflection.
 
 This example application is hosted in GitHub:
 https://github.com/nokia-developer/simple-filter-mixer/
 
-Developed with Microsoft Visual Studio 2013.
-
-Compatible with Windows Phone 8.1 and Windows 8.1. However, the user interface
-is optimised for the phone only and only the phone version is fully tested.
-
-Tested to work on: Nokia Lumia 930, Nokia Lumia 1020 and Nokia Lumia 1520.
+Developed with Microsoft Visual Studio 2013. Compatible with Windows Phone 8.1
+and Windows 8.1. However, the user interface is optimised for the phone only and
+only the phone version is fully tested. Tested to work on: Nokia Lumia 930,
+Nokia Lumia 1020 and Nokia Lumia 1520.
 
 ![Main page](/doc/screenshots/MainPageFiltersAppliedWPSmall.png?raw=true "Main page")&nbsp;
 ![Filter selection page](/doc/screenshots/FiltersPageWPSmall.png?raw=true "Filter selection page")&nbsp;
@@ -44,20 +45,25 @@ For more information on deploying and testing applications see:
 http://msdn.microsoft.com/library/windowsphone/develop/ff402565(v=vs.105).aspx
 
 
-About the implementation
-------------------------
-
-Important classes:
+Important classes
+-----------------
 
 | Class | Description |
 | ----- | ----------- |
-| MainPage | Contains all the logic. |
+| [FiltersPage](/simple-filter-mixer/simple-filter-mixer.Shared/FiltersPage.xaml.cs) | Displays a grid view of all the available filters. On this page filters can be selected and you can open the settings of any filter. |
+| [Imaging](/simple-filter-mixer/simple-filter-mixer.Shared/Imaging.cs) | Creates the filters (based on the definitions in [FilterDefinitions.cs](/simple-filter-mixer/simple-filter-mixer.Shared/DataModel/FilterDefinitions.cs) and renders the image using the filters. Contains implementation for applying modified filter settings. |
+| [SettingsPage](/simple-filter-mixer/simple-filter-mixer.Shared/SettingsPage.xaml.cs) | Retrieves the properties of any filter using reflection. Creates the UI controls for modifying the filter property values and translates the values in controls back to correct property value types, which are then applied by `Imaging` class. |
 
 
 Known issues
 ------------
 
- * App has only the bare minimum code to demonstate filters, and all marketplace release requirements are not implemented
+* No implementation of UI controls for modifying the following filter properties:
+ * `Nokia.Graphics.Imaging.IImageSource` (used e.g. by `BlendFilter`)
+ * `Nokia.Graphics.Imaging.Curve` (used by `CurvesFilter`)
+ * List of regions for `WarpFilter`
+* The image is re-rendered when filter settings are modified even if that filter
+  was not selected
 
 
 License
@@ -67,15 +73,8 @@ See the license text file delivered with this project:
 https://github.com/nokia-developer/simple-filter-mixer/blob/master/License.txt
 
 
-Downloads
----------
-
-| Project | Release | Download |
-| ------- | --------| -------- |
-| Simple Filter Mixer | v1.0 | [simple-filter-mixer-1.0.zip](https://github.com/nokia-developer/simple-filter-mixer/archive/v1.0.zip) |
-
-
 Version history
 ---------------
 
- * 1.0.0.0: First public release of Simple Filter Mixer
+* 1.1: A ton of fixes.
+* 1.0: The first public release of Simple Filter Mixer
