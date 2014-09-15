@@ -8,16 +8,15 @@ https://github.com/nokia-developer/simple-filter-mixer/
 
 Developed with Microsoft Visual Studio 2013.
 
-Compatible with:
+Compatible with Windows Phone 8.1 and Windows 8.1. However, the user interface
+is optimised for the phone only and only the phone version is fully tested.
 
- * Windows Phone 8.1, Windows 8.1
+Tested to work on: Nokia Lumia 930, Nokia Lumia 1020 and Nokia Lumia 1520.
 
-Tested to work on:
+![Main page](/doc/screenshots/MainPageFiltersAppliedWPSmall.png?raw=true "Main page")&nbsp;
+![Filter selection page](/doc/screenshots/FiltersPageWPSmall.png?raw=true "Filter selection page")&nbsp;
+![Settings page](/doc/screenshots/SettingsPageWP2Small.png?raw=true "Filter selection page")&nbsp;
 
- * Nokia Lumia 1520, HP EliteBook 8570w
-
-![Alt text](/Simple Filter Mixer (2).png?raw=true "Screenshot 1")&nbsp;
-![Alt text](/SFMSetParams.png?raw=true "Screenshot 2")
 Instructions
 ------------
 
