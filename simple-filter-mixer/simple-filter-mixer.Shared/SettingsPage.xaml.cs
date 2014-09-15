@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using Windows.Foundation;
 using Windows.UI;
@@ -136,9 +137,7 @@ namespace simple_filter_mixer
                 string propertyName = property.Name;
                 propertyInfo = effectType.GetRuntimeProperty(propertyName);
                 var propertyValue = propertyInfo.GetValue(_filterItemBeingEdited.Filter);
-
-                string[] temp = propertyInfo.PropertyType.ToString().Split('.');
-                string propertyTypeAsString = (string)temp.GetValue(temp.Length - 1);
+                string propertyTypeAsString = propertyInfo.PropertyType.ToString().Split('.').Last<string>();
 
                 Debug.WriteLine(DebugTag + "ExtractProperties(): " + propertyInfo + " == " + propertyValue);
 

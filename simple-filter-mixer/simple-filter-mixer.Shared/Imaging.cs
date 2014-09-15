@@ -4,11 +4,13 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using Windows.Storage;
 using Windows.UI;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
+
 using Nokia.Graphics.Imaging;
-using Windows.Storage;
+
 using simple_filter_mixer.DataModel;
 
 

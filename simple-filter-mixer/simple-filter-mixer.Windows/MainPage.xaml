@@ -12,22 +12,36 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="1" x:Name="AppliedFiltersTextBlock" Style="{ThemeResource BodyTextBlockStyle}" VerticalAlignment="Top" TextWrapping="Wrap" Text="No filters" />
         <Image Grid.Row="1" x:Name="ImageControl" HorizontalAlignment="Center" Stretch="Uniform" Margin="10,10,10,0" Source="Assets/Default.jpg" />
-        <!-- Back button and page title -->
+        
         <!-- Back button and page title -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="backButton" Margin="39,47,0,0" Command="{Binding NavigationHelper.GoBackCommand, ElementName=pageRoot}"
-                        Style="{StaticResource NavigationBackButtonNormalStyle}"
-                        VerticalAlignment="Top"
-                        AutomationProperties.Name="Back"
-                        AutomationProperties.AutomationId="BackButton"
-                        AutomationProperties.ItemType="Navigation Button"/>
-            <TextBlock x:Name="pageTitle" Text="{StaticResource AppName}" Style="{StaticResource HeaderTextBlockStyle}" Grid.Column="1" 
-                        IsHitTestVisible="false" TextWrapping="NoWrap" VerticalAlignment="Bottom" Margin="0,0,30,5"/>
+            <Button
+                x:Name="backButton"
+                Margin="39,47,0,0"
+                Command="{Binding NavigationHelper.GoBackCommand, ElementName=pageRoot}"
+                Style="{StaticResource NavigationBackButtonNormalStyle}"
+                VerticalAlignment="Top"
+                AutomationProperties.Name="Back"
+                AutomationProperties.AutomationId="BackButton"
+                AutomationProperties.ItemType="Navigation Button"
+                />
+            <TextBlock
+                x:Name="pageTitle"
+                Text="{StaticResource AppName}"
+                Style="{StaticResource HeaderTextBlockStyle}"
+                Grid.Column="1" 
+                IsHitTestVisible="false"
+                TextWrapping="NoWrap"
+                VerticalAlignment="Bottom"
+                Margin="0,0,30,5"
+                />
             <ProgressBar x:Name="MyProgressBar" Grid.Row="1" IsIndeterminate="True" Visibility="Collapsed" />
         </Grid>
     </Grid>

@@ -65,8 +65,24 @@ namespace simple_filter_mixer
             }
 
             var filters = new List<IFilter>();
-
             Imaging.GetFilters(filters);
+            string appliedFiltersString = "";
+            int i = 0;
+
+            foreach (var filter in filters)
+            {
+                appliedFiltersString += filter.ToString().Split('.').Last<string>();
+                
+                if (i < filters.Count - 1)
+                {
+                    appliedFiltersString += " > ";
+                }
+
+                i++;
+            }
+
+            AppliedFiltersTextBlock.Text = (appliedFiltersString.Length > 0) ? appliedFiltersString : "No filters";
+
             _imaging.IsRenderingChanged += OnIsRenderingChanged;
 
             if (FiltersPage.FiltersChanged || SettingsPage.SettingsChanged || _firstTime)

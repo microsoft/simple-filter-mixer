@@ -34,12 +34,22 @@
             </StackPanel>
         </StackPanel>
         <ScrollViewer Grid.Row="1">
-            <Image
-                x:Name="ImageControl"
-                Margin="10,10,10,10"
-                Stretch="Uniform"
-                Source="Assets/default.jpg"
-                />
+            <Grid Margin="10,10,10,10">
+                <Image
+                    Grid.Row="0"
+                    x:Name="ImageControl"
+                    Stretch="Uniform"
+                    Source="Assets/default.jpg"
+                    />
+                <TextBlock
+                    Grid.Row="0"
+                    x:Name="AppliedFiltersTextBlock"
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                    VerticalAlignment="Top"
+                    TextWrapping="Wrap"
+                    Text="No filters"
+                    />                
+            </Grid>
         </ScrollViewer>
     </Grid>
     
