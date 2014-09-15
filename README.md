@@ -77,4 +77,4 @@ Version history
 ---------------
 
 * 1.1: A ton of fixes.
-* 1.0: The first public release of Simple Filter Mixer
+* 1.0: The first public release of Simple Filter Mixer.
