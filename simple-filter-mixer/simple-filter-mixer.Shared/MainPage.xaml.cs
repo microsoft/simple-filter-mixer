@@ -46,7 +46,9 @@ namespace simple_filter_mixer
         {
             if (_firstTime)
             {
-                App.DisplayRatio = await ResolveDisplayRatioAsync();
+                double[] screenWidthAndDisplayRatio = await ResolveScreenWidthAndDisplayRatioAsync();
+                App.ScreenWidth = screenWidthAndDisplayRatio[0];
+                App.DisplayRatio = screenWidthAndDisplayRatio[1];
             }
 
             if (App.ChosenPhoto == null)
@@ -182,22 +184,25 @@ namespace simple_filter_mixer
 #endif
         }
 
-        public static async System.Threading.Tasks.Task<double> ResolveDisplayRatioAsync()
+        public static async System.Threading.Tasks.Task<double[]> ResolveScreenWidthAndDisplayRatioAsync()
         {
             double rawPixelsPerViewPixel = 0;
             double screenResolutionX = 0;
             double screenResolutionY = 0;
+            double[] result = new double[2];
 
             await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
                 Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                 {
                     Windows.Graphics.Display.DisplayInformation displayInformation = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
                     rawPixelsPerViewPixel = displayInformation.RawPixelsPerViewPixel;
-                    screenResolutionX = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Bounds.Width * rawPixelsPerViewPixel;
+                    result[0] = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Bounds.Width;
+                    screenResolutionX = result[0] * rawPixelsPerViewPixel;
                     screenResolutionY = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Bounds.Height * rawPixelsPerViewPixel;
                 });
 
-            return screenResolutionY / screenResolutionX;
+            result[1] = screenResolutionY / screenResolutionX;
+            return result;
         }
     }
 }

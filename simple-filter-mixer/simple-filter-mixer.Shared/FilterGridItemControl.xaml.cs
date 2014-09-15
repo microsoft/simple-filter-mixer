@@ -20,7 +20,7 @@ namespace simple_filter_mixer
 {
     public partial class FilterGridItemControl : UserControl, INotifyPropertyChanged
     {
-        private static readonly double DefaultGridItemWidth = 200d;
+        private static readonly double DesiredGridWidth = 160d;
 
         public Image FilterPreviewImage
         {
@@ -44,7 +44,7 @@ namespace simple_filter_mixer
                 "GridItemWidth",
                 typeof(double),
                 typeof(FilterGridItemControl),
-                new PropertyMetadata(DefaultGridItemWidth, new PropertyChangedCallback(OnGridItemWidthChanged)));
+                new PropertyMetadata(0d, new PropertyChangedCallback(OnGridItemWidthChanged)));
 
         public double GridItemWidth
         {
@@ -74,15 +74,7 @@ namespace simple_filter_mixer
         public FilterGridItemControl()
         {
             this.InitializeComponent();
-
-            if (App.DisplayRatio > 1.7)
-            {
-                GridItemWidth = 240;
-            }
-            else
-            {
-                GridItemWidth = 185;
-            }
+            GridItemWidth = (App.ScreenWidth - 10) / Math.Floor(App.ScreenWidth / DesiredGridWidth);
         }
     }
 }
