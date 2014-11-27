@@ -7,7 +7,7 @@ demonstrating each of the available filter in the SDK. This sample also
 demonstrates on-demand creation of the filters using reflection.
 
 This example application is hosted in GitHub:
-https://github.com/nokia-developer/simple-filter-mixer/
+https://github.com/Microsoft/simple-filter-mixer/
 
 Developed with Microsoft Visual Studio 2013. Compatible with Windows Phone 8.1
 and Windows 8.1. However, the user interface is optimised for the phone only and
@@ -70,7 +70,7 @@ License
 -------
 
 See the license text file delivered with this project:
-https://github.com/nokia-developer/simple-filter-mixer/blob/master/License.txt
+https://github.com/Microsoft/simple-filter-mixer/blob/master/License.txt
 
 
 Version history
